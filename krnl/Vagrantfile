@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
     puts "kernel version: '#{krnlver}'"
   end;
 
-  vmname="stretch-" + krnlver
+  vmname="stretch-bld-" + krnlver
   config.vm.hostname = vmname
 
   config.vm.box = "stretch"

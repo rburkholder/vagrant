@@ -6,10 +6,10 @@
 function cleanup {
 
   # package clean up
-  apt-get autoremove
-  apt-get autoclean
-  apt-get purge
-  apt-get clean
+  apt-get -y autoremove
+  apt-get -y autoclean
+  apt-get -y purge
+  apt-get -y clean
       
   # remove indexes
   rm /var/lib/apt/lists/*
@@ -38,7 +38,7 @@ function installkey {
   mkdir /home/vagrant/.ssh
   chmod 700 /home/vagrant/.ssh
   pushd /home/vagrant/.ssh
-  wget --no-check-certificate \
+  wget -q --no-check-certificate \
     'https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub' \
     -O authorized_keys
   chmod 600 /home/vagrant/.ssh/authorized_keys
