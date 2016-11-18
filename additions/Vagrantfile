@@ -1,0 +1,87 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# To run this file for upgrade images and GuestAdditions:
+#   use applicable KRNLVER and VBOXVER settings
+#
+# KRNLVER=4.8.8 VBOXVER=5.1.8 vagrant up --provision-with newkernel
+# KRNLVER=4.8.8 VBOXVER=5.1.8 SYNC_DISABLED=true vagrant reload --provision-with newadditions
+# KRNLVER=4.8.8 VBOXVER=5.1.8 vagrant reload --provision-with fixkey
+# # perform packaging step, then...
+# vagrant destroy
+
+# this is a three step process
+# #1 the 'vagrant up' step requires a synced folder to obtain the new kernel version package
+# #2 the first 'vagrant reload' step will restart the vm, but since the GuestAdditions won't 
+#     work with the new kernel, a synced_folder can't be defined, so needs to be disabled
+#     during the process of rebuilding the GuestAdditions
+# #3 the final 'vagrant reload' restarts into the vm to reset key back to default to be used as a box
+
+Vagrant.configure("2") do |config|
+
+  sync=ENV['SYNC_DISABLED']
+  krnlver=ENV['KRNLVER']
+  vboxver=ENV['VBOXVER']
+
+  if sync.nil? then
+    sync = "false"
+  end
+
+  if krnlver.nil? or vboxver.nil? then
+    abort "need KRNLVER and VBOXVER environment variables"
+  end
+
+  vmname="stretch-" + krnlver
+
+  puts "variables: #{vmname}, #{sync}, #{krnlver}, #{vboxver}"
+
+  config.vm.box = "stretch"
+  config.vm.box_url = "file://~/vagrant/boxes/stretch.box"
+  config.vm.hostname = vmname
+  
+  # disable during build process, as directories are not available
+  config.vm.synced_folder ".", "/vagrant", disabled: sync
+  config.vm.synced_folder "../packages", "/vagrant_packages", disabled: sync
+
+  # install new kernel and headers
+  config.vm.provision "newkernel", type: "shell" do |s|
+
+    if "" == krnlver then 
+      puts "need KRNLVER"
+      exit 
+    end;
+
+    s.name = "newkernel"
+    s.inline = <<-SHELL
+    dpkg -i /vagrant_packages/linux-image-KRNLVER-rpb_1.0_amd64.deb
+    dpkg -i /vagrant_packages/linux-headers-KRNLVER-rpb_1.0_amd64.deb
+    echo "done."
+    SHELL
+    s.inline.gsub(/KRNLVER/,krnlver)
+  end
+  # installs additions compatible with new kernel
+  config.vm.provision "newadditions", type: "shell" do |s|
+
+    if "" == vboxver then 
+      puts "need VBOXVER"
+      exit
+    end
+
+    s.name = "newadditions"
+    s.inline = <<-SHELL
+      bash /home/vagrant/additions.sh VBOXVER
+    SHELL
+    s.inline.gsub(/VBOXVER/, vboxver)
+  end
+  # resets key back to default
+  config.vm.provision "fixkey", type: "shell" do |s|
+    s.name = "fixkey"
+    s.inline = <<-SHELL
+      bash /home/vagrant/additions.sh key
+    SHELL
+  end
+  config.vm.provider "virtualbox" do |v|
+    v.name = vmname
+  end
+
+end
