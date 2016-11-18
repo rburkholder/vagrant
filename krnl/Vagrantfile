@@ -1,0 +1,43 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Build new kernel:
+#
+# KRNLVER=4.8.8 vagrant up --provision-with bldkernel
+
+Vagrant.configure("2") do |config|
+
+  krnlver=ENV['KRNLVER']
+
+  if krnlver.nil? then 
+    abort "need KRNLVER environment variable"
+  else
+    puts "kernel version: '#{krnlver}'"
+  end;
+
+  vmname="stretch-" + krnlver
+  config.vm.hostname = vmname
+
+  config.vm.box = "stretch"
+  config.vm.box_url = "file://~/vagrant/boxes/stretch.box"
+  
+  config.vm.synced_folder ".", "/vagrant", disabled: false
+  config.vm.synced_folder "../packages", "/vagrant_packages", disabled: false
+
+  # build new kernel and headers
+  config.vm.provision "bldkernel", type: "shell" do |s|
+
+    s.name = "bldkernel"
+    s.inline = <<-SHELL
+      bash /vagrant/buildkrnl.sh KRNLVER
+SHELL
+    s.inline = s.inline.gsub(/KRNLVER/,krnlver)
+    puts s.inline
+  end
+  config.vm.provider "virtualbox" do |v|
+    v.name = vmname
+    v.cpus = 3
+  end
+
+end
+
