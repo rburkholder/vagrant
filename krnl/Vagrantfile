@@ -36,7 +36,7 @@ SHELL
   end
   config.vm.provider "virtualbox" do |v|
     v.name = vmname
-    v.cpus = 3
+    v.cpus = 2
   end
 
 end

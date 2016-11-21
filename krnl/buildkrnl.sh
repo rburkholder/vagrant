@@ -10,14 +10,18 @@ function build {
     fi
   
   # Install packages required for building the kernel, and creating a Debian compatible package:
+  echo "updating package manager ..."
   apt-get update
-  apt-get -y install build-essential fakeroot rsync git
-  apt-get -y install bc libssl-dev dpkg-dev libncurses5-dev
-  apt-get -y install kernel-package dirmngr
+  echo "installing packages ..."
+  apt-get -y install build-essential fakeroot rsync git \
+                     bc libssl-dev dpkg-dev libncurses5-dev \
+                     kernel-package dirmngr
+  echo "build-dep ..."
   apt-get -y build-dep linux
   
   NAME=linux-${KRNLVER}.tar
-
+  
+  echo "kernel download ..."
   if [[ ! -e ${NAME} ]]; then
     if [[ -e /vagrant/${NAME}.xz ]]; then
       cp /vagrant/${NAME}.xz .
@@ -37,16 +41,20 @@ function build {
       fi
     fi
   
+  echo "key test ..."
   # Confirm authenticity of the source:
+  #   keyserver requires special port, so may not work without special firewall rule
   gpg --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E
   gpg --verify ${NAME}.sign ${NAME}
   
   # Untar the source:
   if [[ ! -d linux-${KRNLVER} ]]; then
+    echo "expanding sources ..."
     tar xf ${NAME}
     fi
   
   # Copy over an existing Debian configuration file:
+  echo "config file ..."
   cd linux-${KRNLVER}
   cp /boot/config-$(uname -r) .config
   
@@ -66,6 +74,7 @@ function build {
   grep CONFIG_MODULE_SIG_KEY .config
   grep CONFIG_SYSTEM_TRUSTED_KEYS .config
   
+  echo "maintainer ..."
   # update package maintainer values  
   # sudo cp /etc/kernel-pkg.conf.dpkg-new /etc/kernel-pkg.conf
   sed -i 's/^maintainer.*/maintainer := Raymond Burkholder/' /etc/kernel-pkg.conf
@@ -82,11 +91,13 @@ KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
     fi
 
   # perform build
+  echo "build ...."
   make clean
   rm -rf debian
   time make-kpkg --rootcmd fakeroot --initrd --revision=1.0 \
     --append-to-version=-custom kernel_image kernel_headers -j $(grep processor /proc/cpuinfo | wc -l)
-	
+
+  echo "move to directory ..."
   if [[ -d /vagrant_packages ]]; then
     mv ../linux-headers-${KRNLVER}-custom_1.0_amd64.deb /vagrant_packages/
     mv ../linux-image-${KRNLVER}-custom_1.0_amd64.deb /vagrant_packages/
