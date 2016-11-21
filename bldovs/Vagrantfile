@@ -1,58 +1,61 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
-Vagrant.configure("2") do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
+# example command:
+# KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
+#
 
-  # Every Vagrant development environment requires a box. You can search for
-  # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "stretch486"
-  config.vm.box_url = "file://~/vagrant/boxes/stretch486.box"
-  config.vm.hostname = "ovsbld"
+Vagrant.configure("2") do |config|
+
+  krnlver=ENV['KRNLVER']
+  ovsver=ENV['OVSVER']
+
+  if krnlver.nil? or ovsver.nil? then
+    abort "need KRNLVER and OVSVER environment variables"
+  end
+
+  config.vm.box = "stretch-" + krnlver
+  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
+  config.vm.hostname = "bldovs"
   config.vm.synced_folder "../packages", "/vagrant_packages", disabled: false
   config.vm.provision "shell" do |s|
     s.name = "building ..."
     s.inline = <<-SHELL
-      sudo dpkg -i /vagrant_packages/linux-headers-$(uname -r)_1.0_amd64.deb
       # make sure things are updated
-      sudo apt-get update
-      sudo apt-get -y upgrade
+      apt-get update
+      apt-get -y upgrade
       echo "install necessary packages..."
-      sudo apt-get -y install build-essential fakeroot dh-autoreconf procps
-      sudo apt-get -y install python-twisted-conch python-zopeinterface python-six
-      sudo apt-get -y install graphviz openssl libssl-dev python-all unzip
-      sudo apt-get -y install module-assistant
+      apt-get -y install build-essential fakeroot dh-autoreconf procps \
+                    python-twisted-conch python-zopeinterface python-six \
+                    graphviz openssl libssl-dev python-all unzip \
+                    module-assistant
+      dpkg -i /vagrant_packages/linux-headers-$(uname -r)_1.0_amd64.deb
       echo "obtain and expand the most recent version of code ..."
       #wget -q --no-check-certificate https://github.com/openvswitch/ovs/archive/master.zip
       #unzip master.zip
       #cd ovs-master
-      wget http://openvswitch.org/releases/openvswitch-2.6.1.tar.gz
-      tar -zxvf openvswitch-2.6.1.tar.gz
-      cd openvswitch-2.6.1
+      wget -q http://openvswitch.org/releases/openvswitch-OVSVER.tar.gz
+      tar -zxvf openvswitch-OVSVER.tar.gz
+      cd openvswitch-OVSVER
       echo "start the build process ... "
       dpkg-checkbuilddeps
       DEB_BUILD_OPTIONS='parallel=2 nocheck' fakeroot debian/rules binary
       echo "build datapath ..."
       cd ..
-      sudo dpkg -i openvswitch-datapath-source_*.deb 
-      sudo m-a prepare
-      sudo m-a -t build openvswitch-datapath
+      dpkg -i openvswitch-datapath-source_*.deb 
+      m-a prepare
+      m-a -t build openvswitch-datapath
       echo "move results to the shared drive ..."
       mv *.deb /vagrant_packages/
       echo "move modules to shared drive ..."
-      sudo chown vagrant.vagrant /usr/src/openvswitch*
-      sudo mv /usr/src/openvswitch-datapath-module-*.deb /vagrant_packages/
+      chown vagrant.vagrant /usr/src/openvswitch*
+      mv /usr/src/openvswitch-datapath-module-*.deb /vagrant_packages/
       echo "done."
     SHELL
+    s.inline = s.inline.gsub(/OVSVER/,ovsver)
   end
   config.vm.provider "virtualbox" do |v|
-    v.name = "ovsbld"
+    v.name = "bldovs"
     v.cpus = 2
     v.memory = "2048"
   end
