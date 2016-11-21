@@ -26,27 +26,27 @@ vlans = [
 scripts = {}
 
 scripts['hx'] = <<-SCRIPT
-sudo apt-get update
-sudo apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump
-sudo dpkg -i /vagrant_packages/openvswitch-datapath-module-4.8.6-rpb_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/openvswitch-common_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/openvswitch-switch_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/ovn-common_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/ovn-host_2.6.1-1_amd64.deb
+apt-get update
+apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump
+dpkg -i /vagrant_packages/openvswitch-datapath-module-4.8.10-custom_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-common_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-host_2.6.1-1_amd64.deb
 #sed -i 's/#net.ipv4.ip_forward/net.ipv4.ip_forward/' /etc/sysctl.conf
 #sysctl -w net.ipv4.ip_forward=1
 SCRIPT
 
 # similar to 'hx' but without ovn-host, but with ovn-central
 scripts['cx'] = <<-SCRIPT
-sudo apt-get update
-sudo apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump
-sudo dpkg -i /vagrant_packages/openvswitch-datapath-module-4.8.6-rpb_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/openvswitch-common_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/openvswitch-switch_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/ovn-common_2.6.1-1_amd64.deb
-#sudo dpkg -i /vagrant_packages/ovn-host_2.6.1-1_amd64.deb
-sudo dpkg -i /vagrant_packages/ovn-central_2.6.1-1_amd64.deb
+apt-get update
+apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump
+dpkg -i /vagrant_packages/openvswitch-datapath-module-4.8.10-custom_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-common_2.6.1-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-host_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-central_2.6.1-1_amd64.deb
 SCRIPT
 
 # class to track interface: interface type (prv, pub), vlan (name for virtualbox internal)
@@ -126,8 +126,8 @@ puts "maxConnections: #{maxConnections}"
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "stretch486"
-  config.vm.box_url = "file://~/vagrant/boxes/stretch486.box"
+  config.vm.box = "stretch-4.8.10"
+  config.vm.box_url = "file://~/vagrant/boxes/stretch-4.8.10.box"
 
   # https://github.com/mitchellh/vagrant/issues/2389
   # ensure all connections are virtio
