@@ -19,13 +19,13 @@ vagrant up
 ```
 
 ### Building a kernel
-* bldkrnlpkg is used to build a new kernel from kernel.org
+* bldkrnlpkg - is used to build a new kernel from kernel.org
 ```
 KRNLVER=4.8.10 vagrant up --provision-with bldkernel
 ```
 
 ### VirtualBox Additions
-* additions is used to install a new kernel and update the VirtualBox additions
+* additions - used to install a new kernel and update the VirtualBox additions
 * once completed, make a new package
 ```
 KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant up --provision-with newkernel
@@ -36,13 +36,13 @@ KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant destroy -f
 ```
 
 ### Build Openvswitch packages
-* bldovs is used to build openvswitch and ovn packages
+* bldovs - is used to build openvswitch and ovn packages
 ```
  KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
 ```
 
 ### Spool up OVN environment for testing
-* ovnlab makes use of the new kernel and ovs packages to run test environments
+* ovnlab - makes use of the new kernel and ovs packages to run test environments
 ```
  KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
 ```
