@@ -1,5 +1,5 @@
-# vagrant
-## Utilities for building kernels, guest additions, ovs/ovn testing (based upon Debian Stretch/Testing)
+# Utilities for building kernels, guest additions, ovs/ovn testing
+# (based upon Debian Stretch/Testing)
 
 ## Basic outline:
 
@@ -14,16 +14,35 @@
 * once started, check the ip address, and update /etc/apt/sources.list in the original stretch image to make a url like:  http://192.168.1.120:3142/ftp.debian.org/debian
 * run 'bash scripts/pack.sh stretch stretch' again to make an updated package 
 * should run 'vagrant box remove stretch' so that the new package is used in subsequent builds
+```
+vagrant up
+```
 
 ### Building a kernel
 * bldkrnlpkg is used to build a new kernel from kernel.org
+```
+KRNLVER=4.8.10 vagrant up --provision-with bldkernel
+```
 
 ### VirtualBox Additions
 * additions is used to install a new kernel and update the VirtualBox additions
 * once completed, make a new package
+```
+KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant up --provision-with newkernel
+KRNLVER=4.8.10 VBOXVER=5.1.8 SYNC_DISABLED=true vagrant reload --provision-with newadditions
+KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant reload --provision-with fixkey
+# perform packaging step, then...
+KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant destroy -f
+```
 
 ### Build Openvswitch packages
 * bldovs is used to build openvswitch and ovn packages
+```
+ KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
+```
 
 ### Spool up OVN environment for testing
 * ovnlab makes use of the new kernel and ovs packages to run test environments
+```
+ KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
+```
