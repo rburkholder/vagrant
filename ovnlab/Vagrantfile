@@ -10,44 +10,67 @@
 
 require 'ipaddr'
 
+krnlver=ENV['KRNLVER']
+ovsver=ENV['OVSVER']
+
+if krnlver.nil? or ovsver.nil? then
+  abort "need KRNLVER and OVSVER environment variables"
+end
+
 # a list of machines to create within VirtualBox, and the provisioning script to run
-machineInfo =   [ ['c01','cx'], ['h01','hx'], ['h02','hx'], ['h03','hx'] ]
+#machineInfo =   [ ['c01','cx'], ['h01','hx'], ['h02','hx'], ['h03','hx'] ]
+machineInfo =   [ ['c01','cx'], ['h01','hx'], ['h02','hx'] ]
 
 # a list of connections to be made between machines
 #   each set of square brackets is a separate vlan
 vlans = [
   ['prv',['c01','h01']], # controller
   ['prv',['c01','h02']], # controller
-  ['prv',['c01','h03']], # controller
-  ['prv',['h01','h02','h03']], # encapsulated network
-  ['pub',['h01','h02','h03']]  # external network
+#  ['prv',['c01','h03']], # controller
+#  ['pub',['h01','h02','h03']]  # external network
+  ['prv',['h01','h02']], # encapsulated network
+#  ['prv',['h01','h02','h03']], # encapsulated network
   ]
 
+# build the scripts for each machine type
 scripts = {}
 
+# for each host
 scripts['hx'] = <<-SCRIPT
 apt-get update
 apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump
-dpkg -i /vagrant_packages/openvswitch-datapath-module-4.8.10-custom_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/openvswitch-common_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/openvswitch-switch_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/ovn-common_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/ovn-host_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-common_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-host_OVSVER-1_amd64.deb
 #sed -i 's/#net.ipv4.ip_forward/net.ipv4.ip_forward/' /etc/sysctl.conf
 #sysctl -w net.ipv4.ip_forward=1
 SCRIPT
+scripts['hx'] = scripts['hx'].gsub(/KRNLVER/,krnlver)
+scripts['hx'] = scripts['hx'].gsub(/OVSVER/,ovsver)
 
+# for the controller
 # similar to 'hx' but without ovn-host, but with ovn-central
 scripts['cx'] = <<-SCRIPT
 apt-get update
 apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump
-dpkg -i /vagrant_packages/openvswitch-datapath-module-4.8.10-custom_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/openvswitch-common_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/openvswitch-switch_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/ovn-common_2.6.1-1_amd64.deb
-#dpkg -i /vagrant_packages/ovn-host_2.6.1-1_amd64.deb
-dpkg -i /vagrant_packages/ovn-central_2.6.1-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-common_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-host_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/ovn-central_OVSVER-1_amd64.deb
 SCRIPT
+scripts['cx'] = scripts['cx'].gsub(/KRNLVER/,krnlver)
+scripts['cx'] = scripts['cx'].gsub(/OVSVER/,ovsver)
+
+scripts.each do |script|
+#  script = script.gsub(/KRNLVER/,krnlver)
+#  script = script.gsub(/OVSVER/,ovsver)
+  puts script
+  puts '========'
+end
 
 # class to track interface: interface type (prv, pub), vlan (name for virtualbox internal)
 class Segment
@@ -126,8 +149,8 @@ puts "maxConnections: #{maxConnections}"
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "stretch-4.8.10"
-  config.vm.box_url = "file://~/vagrant/boxes/stretch-4.8.10.box"
+  config.vm.box = "stretch-" + krnlver
+  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
 
   # https://github.com/mitchellh/vagrant/issues/2389
   # ensure all connections are virtio
