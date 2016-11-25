@@ -1,9 +1,12 @@
+#!/usr/bin/bash
+
 ovn-nbctl lr-add r1
 ovn-nbctl lrp-add r1 r1-sw1 00:00:00:00:01:29 172.16.255.129/26
 
 ovn-nbctl lr-add r2
 ovn-nbctl lrp-add r2 r2-sw2 00:00:00:00:01:93 172.16.255.193/26
 
+# both addresses are not pingable from both directions
 ovn-nbctl lrp-add r1 r1_r2 00:00:00:01:00:02 172.16.255.2/31 peer=r2_r1
 ovn-nbctl lrp-add r2 r2_r1 00:00:00:01:00:03 172.16.255.3/31 peer=r1_r2
 

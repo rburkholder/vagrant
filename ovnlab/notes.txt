@@ -1,0 +1,1 @@
+KRNLVER=4.8.10 OVSVER=2.6.1 vagrant snapshot restore h01 pristine --no-provision
