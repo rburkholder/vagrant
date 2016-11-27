@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+#!/bin/bash
 
 # $1 - source base name
 # $2 - packaged box name
