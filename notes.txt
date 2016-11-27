@@ -1,0 +1,3 @@
+http://vim.wikia.com/wiki/Change_end-of-line_format_for_dos-mac-unix
+
+:setlocal ff=unix 	This buffer will use LF-only line endings when written.
