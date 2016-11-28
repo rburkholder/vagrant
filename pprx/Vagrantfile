@@ -31,8 +31,12 @@ Vagrant.configure("2") do |config|
     #vb.memory = "1024"
     vb.name = "pprx"
     vb.cpus = 1
+
+    vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+    vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
     end
 
   config.vm.network :private_network, virtualbox__intnet: "mgmt", ip: "192.168.10.10/24"
+  config.vm.network :public_network, bridge: "enp2s0", ip: "192.168.11.10/24"
 
 end
