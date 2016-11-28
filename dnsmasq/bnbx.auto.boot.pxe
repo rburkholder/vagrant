@@ -1,0 +1,14 @@
+ D-I config version 2.0
+default debian-installer/amd64/boot-screens/vesamenu.c32
+DEFAULT auto
+  SAY Booting new build ....
+LABEL auto
+        menu label ^Auto
+# stretch 
+#        kernel debian-installer/amd64/linux TERM=linux keymap=us locale=en_US.UTF-8 country=BM language=en_US:en auto url=tftp://{{ seed_server_ipv4 }}/seeds/{{ seed_file }} domain=undefined hostname=undefined interface={{ interface }} console=ttyS0,115200n -- console=ttyS0,115200n8
+#        append initrd=debian-installer/amd64/initrd.gz
+#        kernel debian-installer/amd64/linux TERM=linux keymap=us locale=en_US.UTF-8 country=BM language=en_US:en auto url=tftp://192.168.11.11/seeds/bnbx.stretch.seed domain=undefined hostname=undefined interface=enp1s0 console=ttyS0,115200n -- console=ttyS0,115200n8
+	kernel debian-installer/amd64/linux TERM=linux keymap=us locale=en_US.UTF-8 country=BM language=en_US:en auto url=tftp://192.168.11.11/seeds/bnbx.stretch.seed domain=example.com hostname=undefined interface=enp1s0 netcfg/get_ipaddress=192.168.11.12 netcfg/get_netmask=255.255.255.0 netcfg/get_nameservers="8.8.8.8 8.8.4.4" netcfg/get_gateway=192.168.11.1 console=ttyS0,115200n -- console=ttyS0,115200n8
+        append initrd=debian-installer/amd64/initrd.gz
+prompt 0
+timeout 3

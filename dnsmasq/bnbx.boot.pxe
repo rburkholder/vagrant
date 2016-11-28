@@ -1,0 +1,19 @@
+ D-I config version 2.0
+default debian-installer/amd64/boot-screens/vesamenu.c32
+DEFAULT auto
+  SAY Booting new build ....
+LABEL auto
+        menu label ^Auto
+# brown box / lanner: provides an expert style manual installation menu for creating seed files
+        kernel debian-installer/amd64/linux TERM=linux boot-installer/install-recommends=false debconf/priority=low console=ttyS0,115200n8 -- console=ttyS0,115200n8
+        append  initrd=debian-installer/amd64/initrd.gz 
+# brown box / lanner: automated install debian stable / jessie / v8
+#  eth0 for debian v8 jessie stable
+#        kernel debian-installer/amd64/linux TERM=linux keymap=us locale=en_US.UTF-8 country=BM language=en_US:en auto url=tftp://192.168.56.10/seeds/deb8u3.seed domain=qvs.bm hostname=undefined interface=eth0  console=ttyS0,115200n -- console=ttyS0,115200n8
+# enp for debian sid unstable
+#        kernel debian-installer/amd64/linux TERM=linux keymap=us locale=en_US.UTF-8 country=BM language=en_US:en auto url=tftp://192.168.56.10/seeds/bnbx.sid.seed domain=qvs.bm hostname=undefined interface=enp1s0 console=ttyS0,115200n -- console=ttyS0,115200n8
+# stretch 
+#        kernel debian-installer/amd64/linux TERM=linux keymap=us locale=en_US.UTF-8 country=BM language=en_US:en auto url=tftp://{{ seed_server_ipv4 }}/seeds/{{ seed_file }} domain=undefined hostname=undefined interface={{ interface }} console=ttyS0,115200n -- console=ttyS0,115200n8
+#        append initrd=debian-installer/amd64/initrd.gz
+prompt 0
+timeout 3
