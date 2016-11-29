@@ -48,14 +48,15 @@ KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant destroy -f
 ```
 ### DNSMASQ Used to install Linux on Lanner Box
 * requires env KRNLVER: kernel version to use from packaged boxes
-* requires env ACTIVEINT: interface on Lanner box used for pxe boot, typically enp1s0
-* Lanner box needs to be set for PXE boot mode
-* run the following in dnsmasq to setup an initial environment:
+* requires env ACTIVEINT: interface in dnsmasq box for physical interface to connect to Lanner box (maybe enp0s9)
+* Lanner box needs to be set for PXE boot mode (driveboot, followed by pxeboot)
+* before starting up dnsmasq guest, run the following to setup an initial environment:
 ```
-sudo bash /vagrant/setup.sh
+bash setup.sh
 ```
-* during first boot, 'tail -f /var/log/daemon.log' and watch for mac address
-* need to add two lines like (mac address, ip address, box name, and mask)
+* then startup the dnsmasq guest, and ssh into it
+* during first boot of the lanner box, 'tail -f /var/log/daemon.log' and watch for mac address
+* need to add two lines to /etc/dnsmasq.d/local like (mac address, ip address, box name, and mask)
 ```
 dhcp-host=00:90:0b:40:a8:68,set:host_192.168.11.5,192.168.11.5,bnbx001,3600
 dhcp-option=tag:host_192.168.11.5,option:netmask,255.255.255.0
@@ -64,7 +65,9 @@ dhcp-option=tag:host_192.168.11.5,option:netmask,255.255.255.0
 ```
 ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ```
-* perform the install and use root (don't add a normal user), otherwise in the later auto-install phase, the user's password will be requested (distrupting the auto install process)
+* perform the install and use root (don't add a normal user), 
+   otherwise in the later auto-install phase, 
+     the user's password will be requested (distrupting the auto install process)
 * after the reboot, log in to the Lanner box as root, and obtain the seed file:
 ```
 # install package
@@ -81,6 +84,8 @@ shutdown -h now
 ```
 * on dnsmasq server, run:
 ```
+mv /home/vagrant/bnbx.stretch.seed.raw /vagrant/
+cd /vagrant
 sed 's/.*SSH server$/# SSH server/' bnbx.stretch.seed.raw > bnbx.stretch.seed.fixed
 rm tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
