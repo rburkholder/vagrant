@@ -23,3 +23,12 @@ Note: that packaging uses drive C:, where there is a minimal amount of space, an
 http://vim.wikia.com/wiki/Change_end-of-line_format_for_dos-mac-unix
 
 :setlocal ff=unix 	This buffer will use LF-only line endings when written.
+
+20161129
+need to check image backup and restore:
+https://wiki.archlinux.org/index.php/disk_cloning
+# dd if=/dev/sdX conv=sync,noerror bs=64K | gzip -c | ssh user@local dd of=backup.img.gz
+# gunzip -c /path/to/backup.img.gz | dd of=/dev/sdX
+
+in some cases, zero out the drive(s) first:
+# dd if=/dev/zero of=/EMPTY bs=1M
