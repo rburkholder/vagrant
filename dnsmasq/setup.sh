@@ -6,6 +6,8 @@ function createlinks {
   ln -s /vagrant/over-ride.seed tftp/seeds/over-ride.seed
   ln -s /vagrant/forcestatic.sh tftp/seeds/forcestatic.sh
 
+  ln -s /vagrant/partman.seed tftp/seeds/partman.seed
+
   ln -s /vagrant/bnbx.stretch.seed       tftp/seeds/bnbx.stretch.seed
   ln -s /vagrant/bnbx.stretch.seed.fixed tftp/seeds/bnbx.stretch.seed.fixed
   

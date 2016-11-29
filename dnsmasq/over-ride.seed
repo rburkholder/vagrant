@@ -51,10 +51,6 @@ apt-setup-udeb    apt-setup/enable-source-repositories    boolean    false
 # for internal use; can be preseeded
 d-i    partman-auto/method     string  regular
 
-# Select disk to partition:
-# Choices:
-d-i    partman-auto/select_disk        select  /dev/sda
-
 # Do you want to return to the partitioning menu?
 partman-basicfilesystems        partman-basicfilesystems/no_swap        boolean false
 
@@ -83,48 +79,6 @@ partman-base   partman/early_command   string
 
 ## **
 # Partitioning scheme:
-# Choices:
-#partman-auto   partman-auto/choose_recipe      select
-d-i     partman-auto/choose_recipe      select  custom1
-
-## **
-# for internal use; can be preseeded
-d-i     partman-auto/expert_recipe      string  \
-  custom1 ::                                          \
-    75 1000 100 ext4                                    \
-      $primary{ } $bootable{ }                          \
-      method{ format } format{ }                        \
-      use_filesystem{ } filesystem{ ext4 }              \
-      mountpoint{ /boot }                               \
-      .                                                 \
-    1000 4000 5000 ext4                                 \
-      $primary{ }                                       \
-      method{ format } format{ }                        \
-      use_filesystem{ } filesystem{ ext4 }              \
-      mountpoint{ / }                                   \
-      .                                                 \
-    5000 10000 1000000000 btrfs                         \
-      $primary{ }                                       \
-      method{ format } format{ }                        \
-      use_filesystem{ } filesystem{ btrfs }             \
-      mountpoint{ /var }                                \
-      .                                                 \
-    4000 8000 10000 ext4                                \
-      method{ format } format{ }                        \
-      use_filesystem{ } filesystem{ ext4 }              \
-      mountpoint{ /home }                               \
-      .                                                 \
-    1000 1000 4000 ext4                                 \
-      method{ format } format{ }                        \
-      use_filesystem{ } filesystem{ ext4 }              \
-      mountpoint{ /tmp }                                \
-      .
-#       options/ro{ ro }
-#    64 512 300% linux-swap
-#      method{ swap } format{ }
-
-## **
-# Partitioning scheme:
 # Choices: All files in one partition (recommended for new users), Separate /home partition, Separate /home\, /var\, and /tmp partit$
 #partman-auto   partman-auto/choose_recipe      select  /lib/partman/recipes/30atomic
 # You can choose one of the three predefined partitioning recipes:
@@ -147,10 +101,6 @@ d-i partman/confirm_nooverwrite boolean true
 # falling back to UUIDs.
 #d-i partman/mount_style select uuid
 #d-i partman/mount_style select traditional
-
-## **
-# for internal use; can be preseeded
-d-i     partman-auto/disk       string  /dev/sda
 
 ## **
 # for internal use; can be preseeded
