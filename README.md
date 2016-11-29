@@ -55,13 +55,24 @@ KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant destroy -f
 bash setup.sh
 ```
 * then startup the dnsmasq guest, and ssh into it
-* during first boot of the lanner box, 'tail -f /var/log/daemon.log' and watch for mac address
-* need to add two lines to /etc/dnsmasq.d/local like (mac address, ip address, box name, and mask)
+```
+KRNLVER=4.8.10 ACTIVEINT=enp0s9 vagrant up
+KRNLVER=4.8.10 ACTIVEINT=enp0s9 vagrant ssh
+```
+* in the guest:
+```
+tail -f /var/log/daemon.log' and watch for mac address
+```
+* start the Lanner box, watch the daemon.log, and given the mac address, need to add two lines to /etc/dnsmasq.d/local like (mac address, ip address, box name, and mask):
 ```
 dhcp-host=00:90:0b:40:a8:68,set:host_192.168.11.5,192.168.11.5,bnbx001,3600
 dhcp-option=tag:host_192.168.11.5,option:netmask,255.255.255.0
 ```
-* Also run the following to create a manual install ability (to obtain debian seed file):
+* restart the service:
+```
+systemctl restart dnsmasq
+```
+* Also run the following to create a manual install ability (to obtain debian seed file, substitute the correct mac address):
 ```
 ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ```
