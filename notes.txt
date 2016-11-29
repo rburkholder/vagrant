@@ -1,3 +1,25 @@
+echo "# vagrant" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/rburkholder/vagrant.git
+git push -u origin master
+
+
+git remote add origin https://github.com/rburkholder/vagrant.git
+git push -u origin master
+
+
+20161121
+
+Note: that packaging uses drive C:, where there is a minimal amount of space, and that it isn't cleaned up
+ INFO interface: info: Exporting VM...
+ INFO interface: info: ==> stretch-4.8.10: Exporting VM...
+==> stretch-4.8.10: Exporting VM...
+ INFO subprocess: Starting process: ["C:/Program Files/Oracle/VirtualBox/VBoxManage.exe", "export", "stretch-4.8.10", "--output", "C:/Users/rburkholder_2/.vagrant.d/tmp/vagrant-package-20161121-10556-yt2vf9/box.ovf"]
+
+20161126
+
 http://vim.wikia.com/wiki/Change_end-of-line_format_for_dos-mac-unix
 
 :setlocal ff=unix 	This buffer will use LF-only line endings when written.

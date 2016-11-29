@@ -1,1 +1,3 @@
 screen /dev/ttyS0 115200
+# with prolific adapter:
+screen /dev/tty.usbserial 115200
