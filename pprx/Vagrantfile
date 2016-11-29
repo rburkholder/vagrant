@@ -17,6 +17,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell" do |s|
     s.name = "provision package proxy ..."
     s.inline = <<-SHELL
+      sed -r -i 's_//[0-9.:]+/_//_g' /etc/apt/sources.list
       sudo apt-get update
       sudo apt-get -y upgrade
       sudo apt-get -y install apt-cacher-ng
