@@ -4,24 +4,32 @@
 ## Basic outline:
 
 ### Bootstrap the project:
-* need to bootstrap the project with a manual build of a minimal Debian Stretch image, and call it 'stretch' in the gui
-* from this archive, scp the scripts/additions.sh file into the image and 'bash additions.sh all 5.1.8' where 5.1.8 is the version of VirtualBox installed (has to be >=5.1.8)
-* shutdown the image
-* run 'bash scripts/pack.sh stretch stretch', the first 'stretch' is the source VirtualBox image name, the second 'stretch' is the destination Vagrant box package name
+* need to bootstrap the project with a manual build of a minimal Debian Stretch image:
+** in VirtualBox, call it 'stretch' in the gui, with 512M memory, 10G drive, virtio driver for network, disable floppy and audio
+** I typically use a weekly or daily snapshot iso from https://www.debian.org/devel/debian-installer/
+** while building, some things to do:  use vagrant as the install user; deselect all packages, enable the ssh server package, 
+* once the build is complete, and the guest has rebooted:
+** create a port forward from 2002 to 22 for the guest (with a NAT network interface) (just put in the two port numbers, no ip addresses required)
+** from the host: 'scp -P 2002 scripts/additions.sh vagrant@127.0.0.1:/home/vagrant/'
+** ssh into the guest: 'ssh -p 2002 vagrant@localhost'
+** in the guest: 'sudo bash additions.sh all 5.1.10' where 5.1.10 is the version of VirtualBox installed (has to be >=5.1.8)
+** shutdown the image
+* in the host, run 'bash scripts/pack.sh stretch stretch-4.8.7', 
+    the first 'stretch' is the source VirtualBox image name, while 'stretch-4.8.7' is the destination Vagrant box package name, 
+     with the version of kernel it has
 
 ### Package Proxy / Caching
 * use the pprx to build and start a apt-cacher-ng based package proxy (helps make further local builds faster)
-* once started, check the ip address, and update /etc/apt/sources.list in the original stretch image to make a url like:  http://192.168.1.120:3142/ftp.debian.org/debian
-* run 'bash scripts/pack.sh stretch stretch' again to make an updated package 
-* should run 'vagrant box remove stretch' so that the new package is used in subsequent builds
+* it has two interfaces:  an internal one and an external, allowing it to be used by virtual as well as physical clients
 ```
-vagrant up
+KRNLVER-4.8.7 vagrant up
 ```
+* this guest needs to be running for the subsequent guests
 
 ### Building a kernel
 * bldkrnlpkg - is used to build a new kernel from kernel.org
 ```
-KRNLVER=4.8.10 vagrant up --provision-with bldkernel
+OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 ```
 
 ### VirtualBox Additions
