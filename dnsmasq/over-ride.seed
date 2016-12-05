@@ -1,5 +1,5 @@
-# rebuild with:
-#  python seed.sort.py < input.seed > output.seed
+# Use non-free software?
+apt-mirror-setup        apt-setup/non-free      boolean true
 
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=819725
 d-i     base-config/late_command        string  echo crc32c >> /etc/initramfs-tools/modules; update-initramfs -u

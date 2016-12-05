@@ -12,15 +12,21 @@ function createlinks {
   ln -s /vagrant/bnbx.stretch.seed.fixed tftp/seeds/bnbx.stretch.seed.fixed
   
   # device specific links
-  ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
-  #ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
+  #ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
+  ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
   
   }
 
 if [[ ! -e netboot.tar.gz ]]; then
-  echo 'run one of the following ...'
-  echo 'wget --no-check-certificate https://d-i.debian.org/daily-images/amd64/daily/netboot/netboot.tar.gz'
-  echo 'curl https://d-i.debian.org/daily-images/amd64/daily/netboot/netboot.tar.gz -o netboot.tar.gz'
+  if [[ -x $(which wget) ]]; then 
+    wget --no-check-certificate https://d-i.debian.org/daily-images/amd64/daily/netboot/netboot.tar.gz
+  else
+    if [[ -x $(which curl) ]]; then
+      curl https://d-i.debian.org/daily-images/amd64/daily/netboot/netboot.tar.gz -o netboot.tar.gz
+    else
+      echo 'need wget or curl to download netboot.tar.gz'
+      fi
+    fi
 else
   if [[ ! -d tftp ]]; then
     mkdir tftp

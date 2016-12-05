@@ -101,10 +101,8 @@ dd if=/dev/zero of=/dev/sda bs=512 count=1
 # shutdown
 shutdown -h now
 ```
-* on dnsmasq server, run:
+* on host, run:
 ```
-mv /home/vagrant/bnbx.stretch.seed.raw /vagrant/
-cd /vagrant
 sed 's/.*SSH server$/# SSH server/' bnbx.stretch.seed.raw > bnbx.stretch.seed.fixed
 rm tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
