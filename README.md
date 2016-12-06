@@ -5,18 +5,30 @@
 
 ### Bootstrap the project:
 * need to bootstrap the project with a manual build of a minimal Debian Stretch image:
-** in VirtualBox, call it 'stretch' in the gui, with 512M memory, 10G drive, virtio driver for network, disable floppy and audio
-** I typically use a weekly or daily snapshot iso from https://www.debian.org/devel/debian-installer/
-** while building, some things to do:  use vagrant as the install user; deselect all packages, enable the ssh server package, 
+ * in VirtualBox, call it 'stretch' in the gui, with 512M memory, 10G drive, virtio driver for network, disable floppy and audio
+ * I typically use a weekly or daily snapshot iso from https://www.debian.org/devel/debian-installer/
+ * while building, some things to do:  use vagrant as the install user; deselect all packages, enable the ssh server package, 
 * once the build is complete, and the guest has rebooted:
-** create a port forward from 2002 to 22 for the guest (with a NAT network interface) (just put in the two port numbers, no ip addresses required)
-** from the host: 'scp -P 2002 scripts/additions.sh vagrant@127.0.0.1:/home/vagrant/'
-** ssh into the guest: 'ssh -p 2002 vagrant@localhost'
-** in the guest: 'sudo bash additions.sh all 5.1.10' where 5.1.10 is the version of VirtualBox installed (has to be >=5.1.8)
-** shutdown the image
-* in the host, run 'bash scripts/pack.sh stretch stretch-4.8.7', 
-    the first 'stretch' is the source VirtualBox image name, while 'stretch-4.8.7' is the destination Vagrant box package name, 
-     with the version of kernel it has
+ * create a port forward from 2002 to 22 for the guest (with a NAT network interface) (just put in the two port numbers, no ip addresses required)
+ * from the host: 
+```
+scp -P 2002 scripts/additions.sh vagrant@127.0.0.1:/home/vagrant/
+```
+ * ssh into the guest: 
+```
+ssh -p 2002 vagrant@localhost
+```
+ * in the guest: 
+```
+sudo bash additions.sh all 5.1.10
+```
+ * where 5.1.10 is the version of VirtualBox installed (has to be >=5.1.8)
+ * shutdown the image
+* in the host, run 
+```
+bash scripts/pack.sh stretch stretch-4.8.7
+```
+  * the first 'stretch' is the source VirtualBox image name, while 'stretch-4.8.7' is the destination Vagrant box package name, with the version of kernel it has
 
 ### Package Proxy / Caching
 * use the pprx to build and start a apt-cacher-ng based package proxy (helps make further local builds faster)
