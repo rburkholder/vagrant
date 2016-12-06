@@ -34,15 +34,18 @@ EOT
 function installkey {
 
   # default vagrant key for bootstrapping   
-  echo "Installing default key ...."	
-  mkdir /home/vagrant/.ssh
-  chmod 700 /home/vagrant/.ssh
+  echo "Installing default key ...."
+  if [[ ! -d /home/vagrant/.ssh ]]; then
+    mkdir /home/vagrant/.ssh
+    chown vagrant.vagrant /home/vagrant/.ssh
+    chmod 700 /home/vagrant/.ssh
+    fi
   pushd /home/vagrant/.ssh
   wget -q --no-check-certificate \
     'https://raw.github.com/mitchellh/vagrant/master/keys/vagrant.pub' \
     -O authorized_keys
   chmod 600 /home/vagrant/.ssh/authorized_keys
-  chown -R vagrant /home/vagrant/.ssh
+  chown vagrant.vagrant /home/vagrant/.ssh/authorized_keys
   popd
   }
 

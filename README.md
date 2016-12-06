@@ -48,10 +48,25 @@ OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 * additions - used to install a new kernel and update the VirtualBox additions
 * once completed, make a new package
 ```
-KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant up --provision-with newkernel
-KRNLVER=4.8.10 VBOXVER=5.1.8 SYNC_DISABLED=true vagrant reload --provision-with newadditions
+  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant up --provision-with newkernel
+  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant halt
+  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z SYNC_DISABLED=true vagrant up --provision-with newadditions
+```
+* you may see a message like:
+> ==> default: More than one image installed, remove excess to reclaim space
+> ==> default: ii  linux-image-4.8.0-1-amd64     4.8.7-1                     amd64        Linux 4.8 for 64-bit PCs (signed)
+> ==> default: ii  linux-image-4.8.12-custom     1.0                         amd64        Linux kernel binary image for version 4.8.12-custom
+* ssh in and:
+```
+sudo apt remove linux-image-4.8.0-1-amd64
+sudo bash additions.sh clean
+```
+* fix up the key, which auto-halts afterwards
+```
 KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant reload --provision-with fixkey
-# perform packaging step, then...
+```
+* perform packaging step, then...
+```
 KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant destroy -f
 ```
 

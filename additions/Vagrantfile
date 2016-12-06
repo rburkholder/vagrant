@@ -4,12 +4,6 @@
 # To run this file for upgrade images and GuestAdditions:
 #   use applicable KRNLVER and VBOXVER settings
 #
-# KRNLVER=4.8.8 VBOXVER=5.1.8 vagrant up --provision-with newkernel
-# KRNLVER=4.8.8 VBOXVER=5.1.8 SYNC_DISABLED=true vagrant reload --provision-with newadditions
-# KRNLVER=4.8.8 VBOXVER=5.1.8 vagrant reload --provision-with fixkey
-# # perform packaging step, then...
-# vagrant destroy
-
 # this is a three step process
 # #1 the 'vagrant up' step requires a synced folder to obtain the new kernel version package
 # #2 the first 'vagrant reload' step will restart the vm, but since the GuestAdditions won't 
@@ -17,27 +11,35 @@
 #     during the process of rebuilding the GuestAdditions
 # #3 the final 'vagrant reload' restarts into the vm to reset key back to default to be used as a box
 
+sync=ENV['SYNC_DISABLED']
+krnlverbase=ENV['KRNLVERBASE']
+krnlverbld=ENV['KRNLVERBLD']
+vboxver=ENV['VBOXVER']
+
+if sync.nil? then
+  sync = false
+end
+
+if krnlverbase.nil? or krnlverbld.nil? or vboxver.nil? then
+  puts "steps required:"
+  puts "  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant up --provision-with newkernel"
+  puts "  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant halt"
+  puts "  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z SYNC_DISABLED=true vagrant up --provision-with newadditions"
+  puts "  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant reload --provision-with fixkey"
+  puts "perform packaging, then"
+  puts "  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant destroy -f"
+  abort "--"
+end
+
 Vagrant.configure("2") do |config|
 
-  sync=ENV['SYNC_DISABLED']
-  krnlver=ENV['KRNLVER']
-  vboxver=ENV['VBOXVER']
+  vmname="stretch-" + krnlverbld
 
-  if sync.nil? then
-    sync = false
-  end
+  puts "variables: #{vmname}, #{krnlverbase}, #{krnlverbld}, #{vboxver}, #{sync}"
 
-  if krnlver.nil? or vboxver.nil? then
-    abort "need KRNLVER and VBOXVER environment variables"
-  end
-
-  vmname="stretch-" + krnlver
-
-  puts "variables: #{vmname}, #{krnlver}, #{vboxver} #{sync}"
-
-  config.vm.box = "stretch"
-  config.vm.box_url = "file://~/vagrant/boxes/stretch.box"
-  config.vm.hostname = vmname
+  config.vm.box = "stretch-" + krnlverbase
+  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlverbase + ".box"
+  config.vm.hostname = "stretch"
   
   # disable during build process, as directories are not available
   config.vm.synced_folder ".", "/vagrant", disabled: sync
@@ -48,11 +50,12 @@ Vagrant.configure("2") do |config|
 
     s.name = "newkernel"
     s.inline = <<-SHELL
+      sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
       dpkg -i /vagrant_packages/linux-image-KRNLVER-custom_1.0_amd64.deb
       dpkg -i /vagrant_packages/linux-headers-KRNLVER-custom_1.0_amd64.deb
       echo "done."
     SHELL
-    s.inline = s.inline.gsub(/KRNLVER/,krnlver)
+    s.inline = s.inline.gsub(/KRNLVER/,krnlverbld)
     #puts s.inline
   end
   # installs additions compatible with new kernel
