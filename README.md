@@ -53,9 +53,11 @@ OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
   KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z SYNC_DISABLED=true vagrant up --provision-with newadditions
 ```
 * you may see a message like:
-> ==> default: More than one image installed, remove excess to reclaim space
-> ==> default: ii  linux-image-4.8.0-1-amd64     4.8.7-1                     amd64        Linux 4.8 for 64-bit PCs (signed)
-> ==> default: ii  linux-image-4.8.12-custom     1.0                         amd64        Linux kernel binary image for version 4.8.12-custom
+```
+==> default: More than one image installed, remove excess to reclaim space
+==> default: ii  linux-image-4.8.0-1-amd64     4.8.7-1                     amd64        Linux 4.8 for 64-bit PCs (signed)
+==> default: ii  linux-image-4.8.12-custom     1.0                         amd64        Linux kernel binary image for version 4.8.12-custom
+```
 * ssh in and:
 ```
 sudo apt remove linux-image-4.8.0-1-amd64
