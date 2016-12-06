@@ -48,9 +48,9 @@ OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 * additions - used to install a new kernel and update the VirtualBox additions
 * once completed, make a new package
 ```
-  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant up --provision-with newkernel
-  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z vagrant halt
-  KRNLVERBASE=x.x.x KRNLVERBLD=y.y.y VBOXVER=z.z.z SYNC_DISABLED=true vagrant up --provision-with newadditions
+KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant up --provision-with newkernel
+KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant halt
+KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 SYNC_DISABLED=true vagrant up --provision-with newadditions
 ```
 * you may see a message like:
 ```
@@ -65,11 +65,11 @@ sudo bash additions.sh clean
 ```
 * fix up the key, which auto-halts afterwards
 ```
-KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant reload --provision-with fixkey
+KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant reload --provision-with fixkey
 ```
 * perform packaging step, then...
 ```
-KRNLVER=4.8.10 VBOXVER=5.1.8 vagrant destroy -f
+KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant destroy -f
 ```
 
 ### Build Openvswitch packages
