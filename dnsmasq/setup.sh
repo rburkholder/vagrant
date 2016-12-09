@@ -14,9 +14,12 @@ function createlinks {
   # device specific links
   #ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
   ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
+  ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-3b-50-62
+  ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-41-4d-b6
   
   }
 
+# obtain netboot file
 if [[ ! -e netboot.tar.gz ]]; then
   if [[ -x $(which wget) ]]; then 
     wget --no-check-certificate https://d-i.debian.org/daily-images/amd64/daily/netboot/netboot.tar.gz
@@ -27,17 +30,20 @@ if [[ ! -e netboot.tar.gz ]]; then
       echo 'need wget or curl to download netboot.tar.gz'
       fi
     fi
-else
-  if [[ ! -d tftp ]]; then
-    mkdir tftp
-    fi
-  cd tftp
-  tar zxvf ../netboot.tar.gz
-  if [[ ! -d seeds ]]; then
-    mkdir seeds
-    fi
-  cd .. 
   fi
+
+# create sub-directory
+if [[ ! -d tftp ]]; then
+  mkdir tftp
+  fi
+cd tftp
+tar zxvf ../netboot.tar.gz
+
+# create seeds 
+if [[ ! -d seeds ]]; then
+  mkdir seeds
+  fi
+cd .. 
 
 createlinks
 

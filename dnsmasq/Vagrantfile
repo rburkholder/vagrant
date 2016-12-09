@@ -33,8 +33,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell" do |s|
     s.name = "provision dnsmasq ..."
     s.inline = <<-SHELL
-      #sed -i 's-http://ftp.us-http://192.168.10.10:3142/ftp.us-g' /etc/apt/sources.list
-      sed -i 's_192.168.1.107_192.168.11.10_g' /etc/apt/sources.list
+      sed -i 's_http://ftp.us_http://192.168.10.10:3142/ftp.us_g' /etc/apt/sources.list
       apt-get update
       apt-get -y upgrade
       #apt-get -y install dnsmasq salt-minion
