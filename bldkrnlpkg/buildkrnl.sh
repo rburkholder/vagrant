@@ -1,5 +1,21 @@
 #! /usr/bin/bash
 
+function InstallPackages {
+
+  # Install packages required for building the kernel, and creating a Debian compatible package:
+  echo "updating package manager ..."
+  apt-get update
+  echo "installing packages ..."
+  apt-get -y --no-install-recommends \
+    install \
+      build-essential fakeroot rsync git \
+      bc libssl-dev dpkg-dev libncurses5-dev \
+      kernel-package dirmngr
+  echo "build-dep ..."
+  apt-get -y build-dep linux
+  
+  }
+
 function build {
 
   KRNLVER=$1
@@ -9,35 +25,36 @@ function build {
     mv /etc/kernel-img.conf /etc/kernel-img.conf.backup
     fi
   
-  # Install packages required for building the kernel, and creating a Debian compatible package:
-  echo "updating package manager ..."
-  apt-get update
-  echo "installing packages ..."
-  apt-get -y install build-essential fakeroot rsync git \
-                     bc libssl-dev dpkg-dev libncurses5-dev \
-                     kernel-package dirmngr
-  echo "build-dep ..."
-  apt-get -y build-dep linux
+  InstallPackages
   
   NAME=linux-${KRNLVER}.tar
+  echo "working with ${NAME} ..."
   
-  echo "kernel download ..."
+  echo "obtaining kernel ..."
   if [[ ! -e ${NAME} ]]; then
     if [[ -e /vagrant/${NAME}.xz ]]; then
+      echo "copying existing kernel ..."
       cp /vagrant/${NAME}.xz .
     else
+      echo "downloading kernel ... "
       wget -q --no-check-certificate https://cdn.kernel.org/pub/linux/kernel/v4.x/${NAME}.xz
       fi
     if [[ ! -d ${NAME} ]]; then
+      echo "expanding kernel ... "
       unxz ${NAME}.xz
+      echo "expanding done."
       fi
     fi
       
+  echo "perform sign test ..."
   if [[ ! -e ${NAME}.sign ]]; then
     if [[ -e /vagrant/${NAME}.sign ]]; then
+      echo "cp sign"
       cp /vagrant/${NAME}.sign .
     else
+      echo "obtain sign"
       wget -q --no-check-certificate https://cdn.kernel.org/pub/linux/kernel/v4.x/${NAME}.sign
+      echo "done"
       fi
     fi
   
@@ -59,12 +76,14 @@ function build {
   cp /boot/config-$(uname -r) .config
   
   # remove trusted key setting
-  sed -i 's/CONFIG_SYSTEM_TRUSTED_KEYS=.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
+  # sed -i 's/CONFIG_SYSTEM_TRUSTED_KEYS=.*/CONFIG_SYSTEM_TRUSTED_KEYS=""/' .config
+  scripts/config --disable CONFIG_SYSTEM_TRUSTED_KEYS
 
   # update config for new kernel
   # A new default .config could be generated with 'make defconfig'.
-  yes "" | make oldconfig
-  # make olddefconfig
+  #yes "" | make oldconfig
+  make olddefconfig
+  # make menuconfig
   scripts/config --disable DEBUG_INFO
   # possible issue with as of Kernel 4.4
   # scripts/config --disable CC_STACKPROTECTOR_STRONG
@@ -90,17 +109,37 @@ KBUILD_AFLAGS += $(call cc-option, -fno-pie) \
 KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
     fi
 
+  SUFFIX="custom"  
+
   # perform build
   echo "build ...."
   make clean
   rm -rf debian
-  time make-kpkg --rootcmd fakeroot --initrd --revision=1.0 \
-    --append-to-version=-custom kernel_image kernel_headers -j $(grep processor /proc/cpuinfo | wc -l)
+  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841368
+  # don't use -j, use CONCURRENCY_LEVEL instead, seems to work better, but as of 20161211 has problems, so use 1 for now
+  #-j $(grep processor /proc/cpuinfo | wc -l) \
+  time \
+    KCPPFLAGS="-fno-PIE" KCFLAGS="-fno-PIC -fno-PIE" \
+    CONCURRENCY_LEVEL=$(grep processor /proc/cpuinfo | wc -l) \
+    fakeroot make-kpkg \
+    --revision=1 --append-to-version=-${SUFFIX} \
+    --initrd kernel_image kernel_headers
+
+  # https://lists.debian.org/debian-kernel/2016/04/msg00575.html    bindeb-pkg
+  # https://debian-handbook.info/browse/stable/sect.kernel-compilation.html 
+  # EXTRAVERSION="-custom-amd64 KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d).0 \
+  # doesn't seem to solve the parallel build problem
+#  time \
+#    KCPPFLAGS="-fno-PIE" KCFLAGS="-fno-PIC -fno-PIE" \
+#    make \
+#      -j $(grep processor /proc/cpuinfo | wc -l) \
+#      LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-1 \
+#      deb-pkg
 
   echo "move to directory ..."
   if [[ -d /vagrant_packages ]]; then
-    mv ../linux-headers-${KRNLVER}-custom_1.0_amd64.deb /vagrant_packages/
-    mv ../linux-image-${KRNLVER}-custom_1.0_amd64.deb /vagrant_packages/
+    mv ../linux-headers-${KRNLVER}-${SUFFIX}_1_amd64.deb /vagrant_packages/
+    mv ../linux-image-${KRNLVER}-${SUFFIX}_1_amd64.deb /vagrant_packages/
     fi
   }
 

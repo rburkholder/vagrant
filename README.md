@@ -5,9 +5,18 @@
 
 ### Bootstrap the project:
 * need to bootstrap the project with a manual build of a minimal Debian Stretch image:
- * in VirtualBox, call it 'stretch' in the gui, with 512M memory, 10G drive, virtio driver for network, disable floppy and audio
+ * for VirtualBox settings:, 
+   * call it 'stretch' in the gui, 
+   * with 512M memory, 10G drive, 
+   * use virtio driver for network, 
+   * disable floppy and audio
  * I typically use a weekly or daily snapshot iso from https://www.debian.org/devel/debian-installer/
- * while building, some things to do:  use vagrant as the install user; deselect all packages, enable the ssh server package, 
+ * while building, some things to do: 
+   * use expert mode to install, 
+   * use targeted drivers (which keeps the image smaller),
+   * use vagrant as the install user (which installs sudo, which is used by vagrant)
+   * for partitioning: create 100m /boot on ext4, remainder on / with btrfs (no swap)
+   * deselect all packages, enable the ssh server package, 
 * once the build is complete, and the guest has rebooted:
  * create a port forward from 2002 to 22 for the guest (with a NAT network interface) (just put in the two port numbers, no ip addresses required)
  * from the host: 
@@ -16,7 +25,7 @@ scp -P 2002 scripts/additions.sh vagrant@127.0.0.1:/home/vagrant/
 ```
  * ssh into the guest: 
 ```
-ssh -p 2002 vagrant@localhost
+ssh -p 2002 vagrant@127.0.0.1
 ```
  * in the guest: 
 ```
@@ -24,7 +33,10 @@ sudo bash additions.sh all 5.1.10
 ```
  * where 5.1.10 is the version of VirtualBox installed (has to be >=5.1.8)
  * shutdown the image
-* in the host, run 
+```
+sudo shutdown -h now
+```
+* back on the host, run 
 ```
 bash scripts/pack.sh stretch stretch-4.8.7
 ```
@@ -39,7 +51,11 @@ KRNLVER-4.8.7 vagrant up
 * this guest needs to be running for the subsequent guests
 
 ### Building a kernel
-* bldkrnlpkg - is used to build a new kernel from kernel.org
+* bldkrnlpkg - is used to build a new kernel from kernel.org (requires 8 to 8 GB harddrive)
+```
+OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up
+```
+To optionally (re)build another kernel using the same image:
 ```
 OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 ```

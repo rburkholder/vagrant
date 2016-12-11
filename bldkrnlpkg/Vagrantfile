@@ -5,19 +5,25 @@
 #
 # OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 
+oldkrnlver=ENV['OLDKRNLVER']
+newkrnlver=ENV['NEWKRNLVER']
+cpucnt=ENV['CPUCNT']
+
+if oldkrnlver.nil? or newkrnlver.nil? then 
+  abort "need OLDKRNLVER, NEWKRNLVER, CPU environment variables"
+end
+
+# note, in 4.8.7, 20161211, parallel build seems broken, only 1 cpu works
+if cpucnt.nil? then
+  cpucnt = 1
+end
+
+puts "building kernel version #{newkrnlver} on #{oldkrnlver} on #{cpucnt} cpu(s)"
+
 Vagrant.configure("2") do |config|
 
-  oldkrnlver=ENV['OLDKRNLVER']
-  newkrnlver=ENV['NEWKRNLVER']
-
-  if oldkrnlver.nil? or newkrnlver.nil? then 
-    abort "need OLDKRNLVER, NEWKRNLVER environment variables"
-  else
-    puts "building kernel version #{newkrnlver} on #{oldkrnlver}"
-  end;
-
-  vmname="stretch-bld-" + newkrnlver
-  config.vm.hostname = vmname
+  vmname = "stretch-bld-" + newkrnlver
+  config.vm.hostname = "bld-custom"
 
   config.vm.box = "stretch-" + oldkrnlver
   config.vm.box_url = "file://~/vagrant/boxes/stretch-" + oldkrnlver +".box"
@@ -38,7 +44,7 @@ SHELL
   end
   config.vm.provider "virtualbox" do |vb|
     vb.name = vmname
-    vb.cpus = 2
+    vb.cpus = cpucnt
     vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
   end
 
