@@ -121,6 +121,7 @@ END { print list }' \
      dpkg -l | grep linux-image
      fi
 
+  uname -a
   }
 
 if [ "root" != $(whoami) ]; then
