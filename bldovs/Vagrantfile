@@ -5,14 +5,14 @@
 # KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
 #
 
+krnlver=ENV['KRNLVER']
+ovsver=ENV['OVSVER']
+
+if krnlver.nil? or ovsver.nil? then
+  abort "need KRNLVER and OVSVER environment variables"
+end
+
 Vagrant.configure("2") do |config|
-
-  krnlver=ENV['KRNLVER']
-  ovsver=ENV['OVSVER']
-
-  if krnlver.nil? or ovsver.nil? then
-    abort "need KRNLVER and OVSVER environment variables"
-  end
 
   config.vm.box = "stretch-" + krnlver
   config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
@@ -22,21 +22,24 @@ Vagrant.configure("2") do |config|
     s.name = "building ..."
     s.inline = <<-SHELL
       # make sure things are updated
+      sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
       apt-get update
       apt-get -y upgrade
       echo "install necessary packages..."
-      apt-get -y install build-essential fakeroot dh-autoreconf procps \
-                    python-twisted-conch python-zopeinterface python-six \
-                    graphviz openssl libssl-dev python-all unzip \
-                    module-assistant
-      dpkg -i /vagrant_packages/linux-headers-$(uname -r)_1.0_amd64.deb
+      apt-get -y --no-install-recommends \
+        install \
+          build-essential fakeroot dh-autoreconf procps \
+          python-twisted-conch python-zopeinterface python-six \
+          graphviz openssl libssl-dev python-all unzip \
+          module-assistant libcap-ng-dev
+      dpkg -i /vagrant_packages/linux-headers-$(uname -r)_1_amd64.deb
       echo "obtain and expand the most recent version of code ..."
-      #wget -q --no-check-certificate https://github.com/openvswitch/ovs/archive/master.zip
-      #unzip master.zip
-      #cd ovs-master
-      wget -q http://openvswitch.org/releases/openvswitch-OVSVER.tar.gz
-      tar -zxvf openvswitch-OVSVER.tar.gz
-      cd openvswitch-OVSVER
+      wget -q --no-check-certificate https://github.com/openvswitch/ovs/archive/master.zip
+      unzip master.zip
+      cd ovs-master
+      #wget -q http://openvswitch.org/releases/openvswitch-OVSVER.tar.gz
+      #tar -zxvf openvswitch-OVSVER.tar.gz
+      #cd openvswitch-OVSVER
       echo "start the build process ... "
       dpkg-checkbuilddeps
       DEB_BUILD_OPTIONS='parallel=2 nocheck' fakeroot debian/rules binary
@@ -54,11 +57,14 @@ Vagrant.configure("2") do |config|
     SHELL
     s.inline = s.inline.gsub(/OVSVER/,ovsver)
   end
-  config.vm.provider "virtualbox" do |v|
-    v.name = "bldovs"
-    v.cpus = 2
-    v.memory = "2048"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "bldovs"
+    vb.cpus = 2
+    vb.memory = "2048"
+    vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
   end
 
+  config.vm.network :private_network, virtualbox__intnet: "mgmt", ip: "192.168.10.33/24"
 
 end
