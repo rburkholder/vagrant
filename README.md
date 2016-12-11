@@ -78,12 +78,19 @@ KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 SYNC_DISABLED=true vagrant up
 ```
 sudo apt remove linux-image-4.8.0-1-amd64
 sudo bash additions.sh clean
+sudo shutdown -h now
 ```
 * fix up the key, which auto-halts afterwards
 ```
-KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant reload --provision-with fixkey
+KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant up --provision-with fixkey
 ```
-* perform packaging step, then...
+* perform packaging step (substituting correct kernel version):
+```
+pushd ..
+bash scripts/pack.sh stretch-4.8.12-additions stretch-4.8.12
+popd
+```
+* then...
 ```
 KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant destroy -f
 ```
