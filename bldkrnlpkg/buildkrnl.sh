@@ -118,12 +118,15 @@ KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841368
   # don't use -j, use CONCURRENCY_LEVEL instead, seems to work better, but as of 20161211 has problems, so use 1 for now
   #-j $(grep processor /proc/cpuinfo | wc -l) \
+  #  CONCURRENCY_LEVEL=$(grep processor /proc/cpuinfo | wc -l) \
+  # make-kpkg --rootcmd fakeroot
+  # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=842845 (on latest parallel builds)
   time \
     KCPPFLAGS="-fno-PIE" KCFLAGS="-fno-PIC -fno-PIE" \
-    CONCURRENCY_LEVEL=$(grep processor /proc/cpuinfo | wc -l) \
-    fakeroot make-kpkg \
-    --revision=1 --append-to-version=-${SUFFIX} \
-    --initrd kernel_image kernel_headers
+    DEB_BUILD_OPTIONS=parallel=$(grep ^processor /proc/cpuinfo|wc -l) \
+    make-kpkg \
+      --revision=1 --append-to-version=-${SUFFIX} \
+      --initrd kernel_image kernel_headers
 
   # https://lists.debian.org/debian-kernel/2016/04/msg00575.html    bindeb-pkg
   # https://debian-handbook.info/browse/stable/sect.kernel-compilation.html 
@@ -131,8 +134,8 @@ KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
   # doesn't seem to solve the parallel build problem
 #  time \
 #    KCPPFLAGS="-fno-PIE" KCFLAGS="-fno-PIC -fno-PIE" \
+#    CONCURRENCY_LEVEL=$(grep processor /proc/cpuinfo | wc -l) \
 #    make \
-#      -j $(grep processor /proc/cpuinfo | wc -l) \
 #      LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-1 \
 #      deb-pkg
 

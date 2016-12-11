@@ -4,6 +4,7 @@
 # Build new kernel:
 #
 # OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
+# interesting link: https://kernelnewbies.org/KernelBuild`
 
 oldkrnlver=ENV['OLDKRNLVER']
 newkrnlver=ENV['NEWKRNLVER']
