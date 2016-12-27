@@ -46,7 +46,7 @@ bash scripts/pack.sh stretch stretch-4.8.7
 * use the pprx to build and start a apt-cacher-ng based package proxy (helps make further local builds faster)
 * it has two interfaces:  an internal one and an external, allowing it to be used by virtual as well as physical clients
 ```
-KRNLVER-4.8.7 vagrant up
+KRNLVER=4.8.7 vagrant up
 ```
 * this guest needs to be running for the subsequent guests
 
