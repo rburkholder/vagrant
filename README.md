@@ -8,17 +8,17 @@
  * for VirtualBox settings:, 
    * call it 'stretch' in the gui, 
    * with 512M memory, 10G drive, 
-   * use virtio driver for network, 
+   * use virtio driver for network, use NAT as the network type
    * disable floppy and audio
  * I typically use a weekly or daily snapshot iso from https://www.debian.org/devel/debian-installer/
  * while building, some things to do: 
    * use expert mode to install, 
    * use targeted drivers (which keeps the image smaller),
-   * use vagrant as the install user (which installs sudo, which is used by vagrant)
+   * don't allow root login, use 'vagrant' as the install user (which installs sudo, which is used by vagrant)
    * for partitioning: create 100m /boot on ext4, remainder on / with btrfs (no swap)
-   * deselect all packages, enable the ssh server package, 
+   * deselect all packages, enable only the ssh server package, 
 * once the build is complete, and the guest has rebooted:
- * create a port forward from 2002 to 22 for the guest (with a NAT network interface) (just put in the two port numbers, no ip addresses required)
+ * create a port forward in the network->advanced settings, from 2002 to 22 for the guest  (just put in the two port numbers, no ip addresses required)
  * from the host: 
 ```
 scp -P 2002 scripts/additions.sh vagrant@127.0.0.1:/home/vagrant/
@@ -27,12 +27,12 @@ scp -P 2002 scripts/additions.sh vagrant@127.0.0.1:/home/vagrant/
 ```
 ssh -p 2002 vagrant@127.0.0.1
 ```
- * in the guest: 
+ * check what version of VirtualBox you have (has to be >= 5.1.8), and use that version number in the guest: 
 ```
 sudo bash additions.sh all 5.1.10
 ```
- * where 5.1.10 is the version of VirtualBox installed (has to be >=5.1.8)
- * shutdown the image
+ * where 5.1.10 is the version of VirtualBox installed
+ * then shutdown the image:
 ```
 sudo shutdown -h now
 ```
