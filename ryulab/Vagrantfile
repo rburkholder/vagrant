@@ -1,0 +1,213 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# 2016/11/03
+#   author: Raymond Burkholder
+#     sets test environment to help simulate lab found at(with a few embellishments):
+#     http://blog.spinhirne.com/2016/09/the-ovn-gateway-router.html
+#   environment:
+#     VirtualBox 5.1.10, Linux Kernel 4.8.14, OVS/OVN 2.6.90
+
+require 'ipaddr'
+
+krnlver=ENV['KRNLVER']
+ovsver=ENV['OVSVER']
+
+if krnlver.nil? or ovsver.nil? then
+  abort "need KRNLVER and OVSVER environment variables"
+end
+
+# a list of machines to create within VirtualBox, and the provisioning script to run
+machineInfo = [ 
+  ['c01','cx'], # controller
+  ['h01','hx'], ['h02','hx'], # hosts
+  ['k01','hx'], ['k02','hx'], # core
+  ['e01','hx'], ['e02','hx'], # edge
+  ]
+
+# a list of connections to be made between machines
+#   each set of square brackets is a separate vlan
+vlans = [
+  ['prv',['c01','h01']], # controller
+  ['prv',['c01','h02']],
+  ['prv',['c01','k01']],
+  ['prv',['c01','k02']],
+  ['prv',['c01','e01']],
+  ['prv',['c01','e02']],
+  ['prv',['h01','k01']], # host to core
+  ['prv',['h01','k02']],
+  ['prv',['h02','k01']],
+  ['prv',['h02','k02']],
+  ['prv',['e01','k01']], # edge to core
+  ['prv',['e01','k02']],
+  ['prv',['e02','k01']],
+  ['prv',['e02','k02']],
+  ['prv',['e01','e02']], # edge to edge
+  ['pub',['e01']],  # external network
+  ['pub',['e02']],
+  ]
+
+# build the scripts for each machine type
+scripts = {}
+
+# for each host
+scripts['hx'] = <<-SCRIPT
+sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
+apt-get update
+apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev \
+  python-ryu-doc python-ryu ryu-bin
+dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-common_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-host_OVSVER-1_amd64.deb
+#sed -i 's/#net.ipv4.ip_forward/net.ipv4.ip_forward/' /etc/sysctl.conf
+#sysctl -w net.ipv4.ip_forward=1
+SCRIPT
+scripts['hx'] = scripts['hx'].gsub(/KRNLVER/,krnlver)
+scripts['hx'] = scripts['hx'].gsub(/OVSVER/,ovsver)
+
+# for the controller
+# similar to 'hx' but without ovn-host, but with ovn-central
+scripts['cx'] = <<-SCRIPT
+sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
+apt-get update
+apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev
+dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-common_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-host_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-central_OVSVER-1_amd64.deb
+SCRIPT
+scripts['cx'] = scripts['cx'].gsub(/KRNLVER/,krnlver)
+scripts['cx'] = scripts['cx'].gsub(/OVSVER/,ovsver)
+
+scripts.each do |script|
+#  script = script.gsub(/KRNLVER/,krnlver)
+#  script = script.gsub(/OVSVER/,ovsver)
+  puts script
+  puts '========'
+end
+
+# class to track interface: interface type (prv, pub), vlan (name for virtualbox internal)
+class Segment
+  attr_accessor :type, :name
+  def initialize(type, name)
+    @type = type
+    @name = name
+  end
+end
+
+segments = {}
+
+# class to track the vlans to be used on each machine
+class Machine
+  attr_accessor :name, :interfaces, :scriptid
+  def initialize(name, scriptid)
+    @name = name
+    @scriptid = scriptid
+    @interfaces = [] # names auto-assigned by code from vlans table
+  end
+end
+
+# create each machine with an empty set of interfaces
+machines = {}
+machineInfo.each do |info|
+  name = info[0]
+  scriptid = info[1]
+  puts 'machine name exists: #{name}, over-writing' if machines.has_key?(name)
+  machines[name] = Machine.new( name, scriptid )
+end
+
+# the subnet isn't used at the moment, but the class does provide a sequence of addresses
+class IPAddressing
+  attr_accessor :subnet
+  def initialize(subnet)
+    @subnet = subnet
+    @nextAddress = subnet.succ  # don't use .1 as Vagrant emits warning messages
+  end
+  def next
+    @nextAddress = @nextAddress.succ
+  end
+end
+
+# assign vlan names and ip address ranges for each connection
+ipAddresses = {}
+
+ixNet = 101 #provide each link with a unique number
+vlans.each do |segment|
+  name = "vlan#{ixNet}"
+  type = segment[0]
+  segments[name] = Segment.new( type, name )
+  endPoints = segment[1]
+  if "prv" == type
+    ipAddresses[name] = IPAddressing.new( IPAddr.new "10.10.#{ixNet}.0/24" )
+  end
+  endPoints.each do |endPoint|
+    if machines.has_key?(endPoint)
+      machines[endPoint].interfaces << name
+    else
+      puts "endPoint #{endPoint} doesn't exist" if !machines.has_key?(endPoint)
+    end
+  end
+  ixNet += 1
+end
+
+# generate connectivity information
+maxConnections = 0
+machines.values.each do |machine|
+  maxConnections = (maxConnections > machine.interfaces.length) ? maxConnections : machine.interfaces.length
+  out = "#{machine.name}: "
+  out += machine.interfaces.join(', ')
+  puts out
+end
+
+puts "maxConnections: #{maxConnections}"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "stretch-" + krnlver
+  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
+
+  # https://github.com/mitchellh/vagrant/issues/2389
+  # ensure all connections are virtio
+  config.vm.provider "virtualbox" do |v|
+
+    cnt = 1; while ( cnt <= (maxConnections + 1) ) # the extra one is for the NAT interface
+      v.customize ["modifyvm", :id, "--nictype#{cnt}", "virtio"]
+      cnt += 1
+    end
+
+  end
+
+  config.vm.synced_folder ".", "/vagrant", disabled: false
+  config.vm.synced_folder "../packages", "/vagrant_packages", disabled: false
+
+  # provision the machines, NAT is automatically provisioned, and is not listed
+  machines.values.each do |machine|
+    config.vm.define machine.name do |instance|
+      instance.vm.hostname = machine.name
+      machine.interfaces.each do |interface|
+        if "prv" == segments[interface].type
+          ipAddress = ipAddresses[interface].next.to_string
+          instance.vm.network :private_network, virtualbox__intnet: interface, ip: ipAddress
+          puts "prv: #{machine.name}: #{interface} = #{ipAddress}"
+        end
+        if "pub" == segments[interface].type
+          # default to dhcp for now
+          puts "pub: #{machine.name}: #{interface}"
+          instance.vm.network :public_network
+        end
+      end
+      instance.vm.provision "shell" do |s|
+        s.inline = scripts[machine.scriptid]
+      end
+      instance.vm.provider "virtualbox" do |v|
+        v.name = "ovslab_" + machine.name
+      end
+    end
+  end
+
+end
+
