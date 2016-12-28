@@ -18,18 +18,16 @@ if krnlver.nil? or ovsver.nil? then
 end
 
 # a list of machines to create within VirtualBox, and the provisioning script to run
-#machineInfo =   [ ['c01','cx'], ['h01','hx'], ['h02','hx'], ['h03','hx'] ]
-machineInfo =   [ ['c01','cx'], ['h01','hx'], ['h02','hx'] ]
+machineInfo =   [ ['c01','cx'], ['h01','hx'], ['h02','hx'], ['gw01','hx'] ]
 
 # a list of connections to be made between machines
 #   each set of square brackets is a separate vlan
 vlans = [
   ['prv',['c01','h01']], # controller
   ['prv',['c01','h02']], # controller
-#  ['prv',['c01','h03']], # controller
-#  ['pub',['h01','h02','h03']]  # external network
-  ['prv',['h01','h02']], # encapsulated network
-#  ['prv',['h01','h02','h03']], # encapsulated network
+  ['prv',['c01','gw01']], # controller
+  ['prv',['h01','h02','gw01']], # encapsulated network
+  ['pub',['gw01']]  # external network
   ]
 
 # build the scripts for each machine type
