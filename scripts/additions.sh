@@ -131,8 +131,8 @@ else
     echo "commands:"
     echo "  clean:         remove package cruft"
     echo "  key:           install default vagrant key"
-    echo "  build VBOXVER: build additions only"
-    echo "  all VBOXVER:   install sudoer, keys, and build"
+    echo "  build VBOXVER: build additions only (custom kernel)"
+    echo "  all VBOXVER:   install sudoer, keys, and build (default kernel)"
   else
     case "$1" in
       clean)
