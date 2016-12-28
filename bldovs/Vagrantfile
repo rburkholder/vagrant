@@ -6,10 +6,14 @@
 #
 
 krnlver=ENV['KRNLVER']
-ovsver=ENV['OVSVER']
+#ovsver=ENV['OVSVER']
 
-if krnlver.nil? or ovsver.nil? then
-  abort "need KRNLVER and OVSVER environment variables"
+#if krnlver.nil? or ovsver.nil? then
+#  abort "need KRNLVER and OVSVER environment variables"
+#end
+
+if krnlver.nil? then
+  abort "need KRNLVER"
 end
 
 Vagrant.configure("2") do |config|
@@ -55,7 +59,7 @@ Vagrant.configure("2") do |config|
       mv /usr/src/openvswitch-datapath-module-*.deb /vagrant_packages/
       echo "done."
     SHELL
-    s.inline = s.inline.gsub(/OVSVER/,ovsver)
+#    s.inline = s.inline.gsub(/OVSVER/,ovsver)
   end
 
   config.vm.provider "virtualbox" do |vb|
