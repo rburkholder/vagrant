@@ -52,7 +52,8 @@ scripts = {}
 
 # for each host
 scripts['hx'] = <<-SCRIPT
-sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
+#sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
+#sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
 apt-get update
 apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev \
   python-ryu-doc python-ryu ryu-bin
@@ -70,7 +71,7 @@ scripts['hx'] = scripts['hx'].gsub(/OVSVER/,ovsver)
 # for the controller
 # similar to 'hx' but without ovn-host, but with ovn-central
 scripts['cx'] = <<-SCRIPT
-sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
+#sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
 apt-get update
 apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev
 dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
