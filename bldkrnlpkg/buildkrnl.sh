@@ -4,15 +4,15 @@ function InstallPackages {
 
   # Install packages required for building the kernel, and creating a Debian compatible package:
   echo "updating package manager ..."
-  apt-get update
+  sudo apt-get update
   echo "installing packages ..."
-  apt-get -y --no-install-recommends \
+  sudo apt-get -y --no-install-recommends \
     install \
       build-essential fakeroot rsync git \
       bc libssl-dev dpkg-dev libncurses5-dev \
       kernel-package dirmngr
   echo "build-dep ..."
-  apt-get -y build-dep linux
+  sudo apt-get -y build-dep linux
   
   }
 
@@ -22,7 +22,7 @@ function build {
 
   # remove a file so it doesn't block the installation process
   if [[ -e /etc/kernel-img.conf ]]; then
-    mv /etc/kernel-img.conf /etc/kernel-img.conf.backup
+    sudo mv /etc/kernel-img.conf /etc/kernel-img.conf.backup
     fi
   
   InstallPackages
@@ -96,18 +96,18 @@ function build {
   echo "maintainer ..."
   # update package maintainer values  
   # sudo cp /etc/kernel-pkg.conf.dpkg-new /etc/kernel-pkg.conf
-  sed -i 's/^maintainer.*/maintainer := Raymond Burkholder/' /etc/kernel-pkg.conf
-  sed -i 's/^email.*/email := raymond@burkholder.net/' /etc/kernel-pkg.conf
+  sudo sed -i 's/^maintainer.*/maintainer := Raymond Burkholder/' /etc/kernel-pkg.conf
+  sudo sed -i 's/^email.*/email := raymond@burkholder.net/' /etc/kernel-pkg.conf
   
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841420
   # http://unix.stackexchange.com/questions/319761/cannot-compile-kernel-error-kernel-does-not-support-pic-mode/319830
-  if [[ "0" == "$(grep -c 'fno-pie' Makefile)" ]]; then
-    sed -i '/^all: vmlinux/a \
-KBUILD_CFLAGS += $(call cc-option, -fno-pie) \
-KBUILD_CFLAGS += $(call cc-option, -no-pie) \
-KBUILD_AFLAGS += $(call cc-option, -fno-pie) \
-KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
-    fi
+#  if [[ "0" == "$(grep -c 'fno-pie' Makefile)" ]]; then
+#    sed -i '/^all: vmlinux/a \
+#KBUILD_CFLAGS += $(call cc-option, -fno-pie) \
+#KBUILD_CFLAGS += $(call cc-option, -no-pie) \
+#KBUILD_AFLAGS += $(call cc-option, -fno-pie) \
+#KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
+#    fi
 
   SUFFIX="custom"  
 
@@ -116,15 +116,19 @@ KBUILD_CPPFLAGS += $(call cc-option, -fno-pie)' Makefile
   make clean
   rm -rf debian
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=841368
-  # don't use -j, use CONCURRENCY_LEVEL instead, seems to work better, but as of 20161211 has problems, so use 1 for now
-  #-j $(grep processor /proc/cpuinfo | wc -l) \
-  #  CONCURRENCY_LEVEL=$(grep processor /proc/cpuinfo | wc -l) \
-  # make-kpkg --rootcmd fakeroot
+  #-j $(grep processor /proc/cpuinfo | wc -l) 
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=842845 (on latest parallel builds)
+  #  KCPPFLAGS="-fno-PIE" 
+  #  KCFLAGS="-fno-PIC -fno-PIE" 
+  #    -j${CPUCNT} 
+  #  KBUILD_VERBOSE=1 
   time \
-    KCPPFLAGS="-fno-PIE" KCFLAGS="-fno-PIC -fno-PIE" \
-    DEB_BUILD_OPTIONS=parallel=$(grep ^processor /proc/cpuinfo|wc -l) \
+    CPUCNT=$(grep ^processor /proc/cpuinfo|wc -l) \
+    MAKEFLAGS="CC=gcc-5 HOSTCC=gcc-5" \
+    CONCURRENCY_LEVEL=${CPUCNT} \
+    DEB_BUILD_OPTIONS="parallel=${CPUCNT}" \
     make-kpkg \
+      --rootcmd fakeroot \
       --revision=1 --append-to-version=-${SUFFIX} \
       --initrd kernel_image kernel_headers
 

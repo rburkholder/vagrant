@@ -6,12 +6,15 @@
 # OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 # interesting link: https://kernelnewbies.org/KernelBuild`
 
+# ensure enough memory for concurrent builds
+# http://stackoverflow.com/questions/30887143/make-j-8-g-internal-compiler-error-killed-program-cc1plus
+
 oldkrnlver=ENV['OLDKRNLVER']
 newkrnlver=ENV['NEWKRNLVER']
 cpucnt=ENV['CPUCNT']
 
 if oldkrnlver.nil? or newkrnlver.nil? then 
-  abort "need OLDKRNLVER, NEWKRNLVER, CPU environment variables"
+  abort "need OLDKRNLVER, NEWKRNLVER, CPUCNT environment variables"
 end
 
 # note, in 4.8.7, 20161211, parallel build seems broken, only 1 cpu works
@@ -38,12 +41,14 @@ Vagrant.configure("2") do |config|
     s.name = "bldkernel"
     s.inline = <<-SHELL
       sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
-      bash /vagrant/buildkrnl.sh NEWKRNLVER
+      su -c "bash /vagrant/buildkrnl.sh NEWKRNLVER" -s /bin/bash vagrant
+      #bash /vagrant/buildkrnl.sh NEWKRNLVER
 SHELL
     s.inline = s.inline.gsub(/NEWKRNLVER/,newkrnlver)
     puts s.inline
   end
   config.vm.provider "virtualbox" do |vb|
+    vb.memory = "4096"
     vb.name = vmname
     vb.cpus = cpucnt
     vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
