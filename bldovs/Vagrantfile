@@ -36,7 +36,13 @@ Vagrant.configure("2") do |config|
           python-twisted-conch python-zopeinterface python-six \
           graphviz openssl libssl-dev python-all unzip \
           module-assistant libcap-ng-dev
-      dpkg -i /vagrant_packages/linux-headers-$(uname -r)_1_amd64.deb
+      echo "install header files..."
+      HEADERS=linux-headers-$(uname -r)_1_amd64.deb
+      if [[ -e ${HEADERS} ]]; then
+        dpkg -i /vagrant_packages/linux-headers-$(uname -r)_1_amd64.deb
+      else
+        apt-get -y install linux-headers-$(uname -r)
+        fi
       echo "obtain and expand the most recent version of code ..."
       wget -q --no-check-certificate https://github.com/openvswitch/ovs/archive/master.zip
       unzip master.zip
