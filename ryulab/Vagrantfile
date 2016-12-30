@@ -34,15 +34,15 @@ vlans = [
   ['prv',['c01','k02']],
   ['prv',['c01','e01']],
   ['prv',['c01','e02']],
-  ['prv',['h01','k01']], # host to core
-  ['prv',['h01','k02']],
-  ['prv',['h02','k01']],
-  ['prv',['h02','k02']],
-  ['prv',['e01','k01']], # edge to core
-  ['prv',['e01','k02']],
-  ['prv',['e02','k01']],
-  ['prv',['e02','k02']],
-  ['prv',['e01','e02']], # edge to edge
+  ['prv',['k01','h01']], # core to host
+  ['prv',['k02','h01']],
+  ['prv',['k01','h02']],
+  ['prv',['k02','h02']],
+  ['prv',['k01','e01']], # core to edge
+  ['prv',['k02','e01']],
+  ['prv',['k01','e02']],
+  ['prv',['k02','e02']],
+  ['prv',['k01','k02']], # core to core
   ['pub',['e01']],  # external network
   ['pub',['e02']],
   ]
@@ -50,13 +50,31 @@ vlans = [
 # build the scripts for each machine type
 scripts = {}
 
-# for each host
-scripts['hx'] = <<-SCRIPT
+# for the controller
+# similar to 'hx' but without ovn-host, but with ovn-central
+scripts['cx'] = <<-SCRIPT
+sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
 #sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
-#sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
 apt-get update
 apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev \
-  python-ryu-doc python-ryu ryu-bin
+  python-ryu-doc python-ryu ryu-bin python-netifaces
+dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
+dpkg -i /vagrant_packages/python-openvswitch_OVSVER-1_all.deb
+#dpkg -i /vagrant_packages/ovn-common_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-host_OVSVER-1_amd64.deb
+#dpkg -i /vagrant_packages/ovn-central_OVSVER-1_amd64.deb
+SCRIPT
+scripts['cx'] = scripts['cx'].gsub(/KRNLVER/,krnlver)
+scripts['cx'] = scripts['cx'].gsub(/OVSVER/,ovsver)
+
+# for each host
+scripts['hx'] = <<-SCRIPT
+sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
+#sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
+apt-get update
+apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev
 dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
 dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
 dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
@@ -67,22 +85,6 @@ dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
 SCRIPT
 scripts['hx'] = scripts['hx'].gsub(/KRNLVER/,krnlver)
 scripts['hx'] = scripts['hx'].gsub(/OVSVER/,ovsver)
-
-# for the controller
-# similar to 'hx' but without ovn-host, but with ovn-central
-scripts['cx'] = <<-SCRIPT
-#sed -i 's_/192.168.10.10:3142/_/ftp.debian.org/_g' /etc/apt/sources.list
-apt-get update
-apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev
-dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
-dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
-dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
-#dpkg -i /vagrant_packages/ovn-common_OVSVER-1_amd64.deb
-#dpkg -i /vagrant_packages/ovn-host_OVSVER-1_amd64.deb
-#dpkg -i /vagrant_packages/ovn-central_OVSVER-1_amd64.deb
-SCRIPT
-scripts['cx'] = scripts['cx'].gsub(/KRNLVER/,krnlver)
-scripts['cx'] = scripts['cx'].gsub(/OVSVER/,ovsver)
 
 scripts.each do |script|
 #  script = script.gsub(/KRNLVER/,krnlver)
@@ -205,7 +207,7 @@ Vagrant.configure("2") do |config|
         s.inline = scripts[machine.scriptid]
       end
       instance.vm.provider "virtualbox" do |v|
-        v.name = "ovslab_" + machine.name
+        v.name = "ryulab_" + machine.name
       end
     end
   end
