@@ -1,0 +1,16 @@
+ovs-vsctl get-controller br0
+
+ovs-vsctl show
+
+ovs-ofctl --protocols OpenFlow14 show br0
+ovs-ofctl --protocols OpenFlow14 dump-flows br0
+ovs-ofctl --protocols OpenFlow14 dump-tables br0
+
+ovs-dpctl show
+
+ovs-appctl bridge/dump-flows br0
+
+https://osrg.github.io/ryu-book/en/html/openflow_protocol.html   OFPP_NORMAL
+
+ryu run --observe-links /usr/lib/python2.7/dist-packages/ryu/app/gui_topology/gui_topology.py --install-lldp-flow
+

@@ -6,6 +6,14 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 from ryu.ofproto import ofproto_v1_4
 from ryu import utils
+from ryu.controller.controller import Datapath
+
+from ryu.topology import event
+from ryu.controller import dpset
+
+from ryu.topology import event, switches
+from ryu.topology.api import get_switch, get_link
+
 
 # init with:
 #   mkdir /var/log/ryu
@@ -20,6 +28,12 @@ class test1(app_manager.RyuApp):
     super(test1, self).__init__(*args, **kwargs)
 
     self.mac_to_port = {}
+    self.topology_api_app = self
+    self.nodes = {}
+    self.links = {}
+    self.no_of_nodes = 0
+    self.no_of_links = 0
+    self.i=0
 
   @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
   def switch_features_handler(self, ev):
@@ -33,7 +47,7 @@ class test1(app_manager.RyuApp):
     actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                       ofproto.OFPCML_NO_BUFFER
                                       )]
-    self.add_flow(datapath, 0, match, actions )
+    self.add_flow(datapath, 10, match, actions )
 
     self.logger.info('OFPSwitchFeatures received: '
                       'datapath_id=0x%016x n_buffers=%d '
@@ -42,7 +56,6 @@ class test1(app_manager.RyuApp):
                       msg.datapath_id, msg.n_buffers, msg.n_tables,
                       msg.auxiliary_id, msg.capabilities)
 
-
   def add_flow(self, datapath, priority, match, actions):
     ofproto = datapath.ofproto
     parser = datapath.ofproto_parser
@@ -50,7 +63,9 @@ class test1(app_manager.RyuApp):
     # construct flow_mod message and send it.
     inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
     mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
-                            match=match, instructions=inst)
+                            match=match, instructions=inst,
+                            cookie=1024
+                            )
     datapath.send_msg(mod)
 
   @set_ev_cls(ofp_event.EventOFPStateChange, [MAIN_DISPATCHER, DEAD_DISPATCHER])
@@ -65,14 +80,59 @@ class test1(app_manager.RyuApp):
                        'datapath_id=%016x', datapath.id
                        )
 
+  @set_ev_cls(dpset.EventPortModify, MAIN_DISPATCHER)
+  def port_modify_handler(self, ev):
+    self.logger.info('EventPortModify')
+
+  @set_ev_cls(event.EventSwitchEnter)
+  def get_topology_data(self, ev):
+    switch_list = get_switch(self.topology_api_app, None)
+    switches=[switch.dp.id for switch in switch_list]
+    #self.net.add_nodes_from(switches)
+
+    print "**********List of switches"
+    for switch in switch_list:
+      #self.ls(switch)
+      print switch
+      self.nodes[self.no_of_nodes] = switch
+      self.no_of_nodes += 1
+
+    links_list = get_link(self.topology_api_app, None)
+    print links_list
+
+    links=[(link.src.dpid,link.dst.dpid,{'port':link.src.port_no}) for link in links_list]
+    print links
+
+    #self.net.add_edges_from(links)
+    links=[(link.dst.dpid,link.src.dpid,{'port':link.dst.port_no}) for link in links_list]
+    print links
+
+    #self.net.add_edges_from(links)
+    print "**********List of links"
+    #print self.net.edges()
+    for link in links_list:
+      print link.dst
+      print link.src
+      #print "Novo link"
+	  #self.no_of_links += 1
+
+
+  @set_ev_cls(event.EventSwitchLeave, [MAIN_DISPATCHER, CONFIG_DISPATCHER, DEAD_DISPATCHER])
+  def handler_switch_leave(self, ev):
+    self.logger.info("Not tracking Switches, switch leaved.")
 
   @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
   def packet_in_handler(self, ev):
+
     self.logger.info('packet_in')
+
     msg      = ev.msg
     datapath = msg.datapath
     ofproto  = datapath.ofproto
     parser   = datapath.ofproto_parser
+
+    #if ofproto_v1_4.OFP_NO_BUFFER == msg.buffer_id:
+    #  self.logger.info('not buffered in switch')
 
     #actions = [ofp_parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
     #out = ofp_parser.OFPPacketOut(
@@ -98,8 +158,10 @@ class test1(app_manager.RyuApp):
         reason = 'unknown'
 
     self.logger.info('OFPPacketIn received: '
+                      'datapath_id=%016x '
                       'buffer_id=%x total_len=%d reason=%s '
                       'table_id=%d cookie=%d match=%s data=%s',
+                      datapath.id,
                       msg.buffer_id, msg.total_len, reason,
                       msg.table_id, msg.cookie, msg.match,
                       utils.hex_array(msg.data))
