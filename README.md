@@ -134,7 +134,7 @@ systemctl restart dnsmasq
 ```
 * Also run the following to create a manual install ability (to obtain debian seed file, substitute the correct mac address):
 ```
-ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
+ln -s /vagrant/pxe/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ```
 * perform the install and use root (don't add a normal user), 
    otherwise in the later auto-install phase, 
@@ -147,7 +147,7 @@ apt-get install debconf-utils
 debconf-get-selections --installer > seed.txt
 debconf-get-selections >> seed.txt
 # copy seed file to dnsmasq server
-scp seed.txt vagrant@192.168.11.11:/vagrant/bnbx.stretch.seed.raw
+scp seed.txt vagrant@192.168.11.11:/vagrant/seeds/bnbx.stretch.seed.raw
 # zero out boot sector so will restart to rebuild automatically
 dd if=/dev/zero of=/dev/sda bs=512 count=1
 # shutdown
@@ -155,9 +155,9 @@ shutdown -h now
 ```
 * on host, run:
 ```
-sed 's/.*SSH server$/# SSH server/' bnbx.stretch.seed.raw > bnbx.stretch.seed.fixed
+bash scripts/fix-seed.sh seeds/bnbx.stretch
 rm tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
-ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
+ln -s /vagrant/pxe/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ```
 * turn the power on for the Lanner box, and it should boot and perform an auto-install
 * setup.sh and Vagrantfile should be updated with the new 'ln -s ....' setting for that mac address

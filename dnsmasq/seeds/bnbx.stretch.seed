@@ -2,11 +2,11 @@
 d-i preseed/include string bnbx.stretch.seed.fixed partman.seed over-ride.seed
 
 # www.debian.org/releases/stable/amd64/apbs04.html.en
-#d-i preseed/run string forcestatic.sh
+d-i preseed/run string force-static.sh
 
-#d-i netcfg/disable_autoconfig boolean true
-#d-i netcfg/confirm_static boolean true
-# above three lines needed when statis ip address applied
+d-i netcfg/disable_autoconfig boolean true
+d-i netcfg/confirm_static boolean true
+# above three lines needed when static ip address applied
 
 #note: need to remove or comment out in raw->fixed:
 #d-i	netcfg/get_ipaddress	string

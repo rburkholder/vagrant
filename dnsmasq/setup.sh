@@ -3,19 +3,19 @@
 
 function createlinks {
   # common files - note that these links make sense only inside the dnsmasq guest
-  ln -s /vagrant/over-ride.seed tftp/seeds/over-ride.seed
-  ln -s /vagrant/forcestatic.sh tftp/seeds/forcestatic.sh
+  ln -s /vagrant/seeds/over-ride.seed tftp/seeds/over-ride.seed
+  ln -s /vagrant/scripts/force-static.sh tftp/seeds/force-static.sh
 
-  ln -s /vagrant/partman.seed tftp/seeds/partman.seed
+  ln -s /vagrant/seeds/partman.seed tftp/seeds/partman.seed
 
-  ln -s /vagrant/bnbx.stretch.seed       tftp/seeds/bnbx.stretch.seed
-  ln -s /vagrant/bnbx.stretch.seed.fixed tftp/seeds/bnbx.stretch.seed.fixed
+  ln -s /vagrant/seeds/bnbx.stretch.seed       tftp/seeds/bnbx.stretch.seed
+  ln -s /vagrant/seeds/bnbx.stretch.seed.fixed tftp/seeds/bnbx.stretch.seed.fixed
   
   # device specific links
   #ln -s /vagrant/bnbx.manu.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
-  ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
-  ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-3b-50-62
-  ln -s /vagrant/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-41-4d-b6
+  ln -s /vagrant/pxe/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
+  ln -s /vagrant/pxe/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-3b-50-62
+  ln -s /vagrant/pxe/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-41-4d-b6
   
   }
 
