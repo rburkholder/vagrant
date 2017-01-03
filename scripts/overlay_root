@@ -1,0 +1,99 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Root file system overlay
+# Description:       Root file system overlay.  Requires /srv/overlay.
+### END INIT INFO
+
+# update-rc.d overlay_root defaults
+
+name=`basename $0`
+pid_file="/var/run/$name.pid"
+stdout_log="/var/log/$name.log"
+stderr_log="/var/log/$name.err"
+
+is_running() {
+  findmnt /mnt/.root.ofs && findmnt / | grep overlay
+}
+
+case "$1" in
+  start)
+    if is_running; then
+      echo "Already started"
+    else
+      echo "Starting $name"
+      if [[ ! -d /srv/overlay ]]; then
+        echo "/srv/overlay does not exist"
+        exit 1
+        fi
+      if [[ ! -e /srv/overlay/.root.img ]]; then
+        dd if=/dev/zero of=/srv/overlay/.root.img bs=4096 count=204800
+        if [[ "0" != "$?" ]]; then
+          echo "problems creating image"
+          exit 1
+          fi
+        mkfs.btrfs -L root_overlay /srv/overlay/.root.img
+        if [[ "0" != "$?" ]]; then
+          echo "problems creating filesystem"
+          exit 1
+          fi
+        fi
+      if [[ ! -e /mnt/.root.ofs ]]; then
+        mkdir /mnt/.root.ofs
+        fi
+      mount /srv/overlay/.root.img /mnt/.root.ofs
+      if [[ ! -e /mnt/.root.ofs/.upper ]]; then
+        mkdir /mnt/.root.ofs/.upper
+        fi
+      if [[ ! -e /mnt/.root.ofs/.workdir ]]; then
+        mkdir /mnt/.root.ofs/.workdir
+        fi
+      mount -t overlay overlay -o lowerdir=/,upperdir=/mnt/.root.ofs/.upper,workdir=/mnt/.root.ofs/.workdir /
+      if [[ "0" != "$?" ]]; then
+        echo "mount failed"
+        exit 1
+        fi
+      fi
+    ;;
+  stop)
+    if is_running; then
+      echo -n "Stopping $name.."
+      umount /
+      if [[ "0" != "$?" ]]; then
+        echo "bad umount on /"
+        exit 1
+        fi
+      umount /mnt/.root.ofs/
+      if [[ "0" != "$?" ]]; then
+        echo "bad umount on /"
+        exit 1
+        fi
+      if is_running; then
+        echo "Not stopped; umounts failed"
+        exit 1
+      else
+        echo "Stopped"
+        fi
+    else
+      echo "Not running"
+      fi
+    ;;
+  status)
+    if is_running; then
+      echo "Running"
+    else
+      echo "Stopped"
+      exit 1
+      fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

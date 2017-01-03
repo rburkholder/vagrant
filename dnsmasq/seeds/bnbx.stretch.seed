@@ -1,5 +1,5 @@
 # www.debian.org/releases/stable/amd64/apbs05.html.en
-d-i preseed/include string bnbx.stretch.seed.fixed partman.seed over-ride.seed
+d-i preseed/include string bnbx.stretch.seed.fixed partman.overlay.seed over-ride.seed
 
 # www.debian.org/releases/stable/amd64/apbs04.html.en
 d-i preseed/run string force-static.sh

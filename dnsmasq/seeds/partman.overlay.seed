@@ -1,0 +1,71 @@
+# Select disk to partition:
+# Choices: SCSI3 (0\,0\,0) (sda) - 21.5 GB VMware Virtual disk
+d-i     partman-auto/select_disk        select  /var/lib/partman/devices/=dev=sda
+
+# for internal use; can be preseeded
+d-i     partman-auto/disk       string  /dev/sda
+
+
+## **
+# Partitioning scheme:
+# Choices:
+#partman-auto   partman-auto/choose_recipe      select
+#d-i     partman-auto/choose_recipe      select  custom1
+
+## **
+# http://www.bishnet.net/tim/blog/2015/01/29/understanding-partman-autoexpert_recipe/
+# http://ftp.dc.volia.com/pub/debian/preseed/partman-auto-recipe.txt
+# https://ubuntuforums.org/showthread.php?t=1783522&p=10997700#post10997700 'device' for lvm preseed only
+# https://lists.debian.org/debian-boot/2011/04/msg00244.html (several options/___ parameters)
+# https://lists.debian.org/debian-boot/2015/03/msg00281.html ( more options/discard, options/relatime, options ssd)
+d-i     partman-auto/expert_recipe      string  \
+  custom1 ::                                    \
+    110 120 120 ext4                            \
+      $primary{ } $bootable{ }                  \
+      method{ format } format{ }                \
+      use_filesystem{ } filesystem{ ext4 }      \
+      mountpoint{ /boot }                       \
+      options/ro{ ro }                          \
+      .                                         \
+    800 820 2000 ext4                           \
+      $primary{ }                               \
+      method{ format } format{ }                \
+      use_filesystem{ } filesystem{ ext4 }      \
+      mountpoint{ / }                           \
+      .                                         \
+    200 210 1000 btrfs                          \
+      method{ format } format{ }                \
+      use_filesystem{ } filesystem{ btrfs }     \
+      mountpoint{ /home }                       \
+      .                                         \
+    300 310 1000 ext4                           \
+      method{ format } format{ }                \
+      use_filesystem{ } filesystem{ ext4 }      \
+      mountpoint{ /tmp }                        \
+      .                                         \
+    512 520 1024 ext4                           \
+      method{ format } format{ }                \
+      use_filesystem{ } filesystem{ ext4 }      \
+      mountpoint{ /var }                        \
+      .                                         \
+    512 515 -1 btrfs                            \
+      $primary{ }                               \
+      method{ format } format{ }                \
+      use_filesystem{ } filesystem{ btrfs }     \
+      mountpoint{ /srv/overlay }                \
+      .                                         
+
+# http://askubuntu.com/questions/542327/how-do-i-preseed-partman-recipe-two-disks
+# doesn't seem to work
+
+#    100 120 -1 btrfs                   \
+#      $primary{ }                              \
+#      method{ format } format{ }               \
+#      use_filesystem{ } filesystem{ btrfs }    \
+#      mountpoint{ /var/test }                  \
+#      device { /dev/sdb }                      \
+#      .
+
+#    64 512 300% linux-swap
+#      method{ swap } format{ }
+
