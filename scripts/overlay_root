@@ -10,6 +10,7 @@
 ### END INIT INFO
 
 # update-rc.d overlay_root defaults
+# info at:  https://wiki.debian.org/LSBInitScripts
 
 name=`basename $0`
 pid_file="/var/run/$name.pid"
