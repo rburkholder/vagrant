@@ -156,6 +156,7 @@ shutdown -h now
 * on host, run:
 ```
 bash scripts/fix-seed.sh seeds/bnbx.stretch
+# on mac: bash scripts/fix-seed.mac.sh seeds/bnbx.stretch
 rm tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ln -s /vagrant/pxe/bnbx.auto.boot.pxe tftp/pxelinux.cfg/01-00-90-0b-40-a8-68
 ```

@@ -10,7 +10,7 @@ end
 Vagrant.configure("2") do |config|
 
   config.vm.box = "stretch-" + krnlver
-  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
+  config.vm.box_url = "file://../boxes/stretch-" + krnlver + ".box"
   config.vm.hostname = "pprx"
 
   #config.vm.synced_folder "../packages", "/vagrant_packages"

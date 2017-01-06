@@ -13,6 +13,5 @@ fi
 sed    's/.*SSH server$/# SSH server/' $RAW > $FIXED
 sed -i 's/^d-i\tnetcfg\/get_ipaddress/#d-i\tnetcfg\/get_ipaddress/' $FIXED
 sed -i 's/^d-i\tnetcfg\/get_hostname/#d-i\tnetcfg\/get_hostname/' $FIXED
-sed -i 's/^d-i\tnetcfg\/get_hostname/#d-i\tnetcfg\/get_hostname/' $FIXED
 sed -i 's/^d-i\tnetcfg\/get_nameservers/#d-i\tnetcfg\/get_nameservers/' $FIXED
 exit 0

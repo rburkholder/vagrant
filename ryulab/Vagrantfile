@@ -171,7 +171,7 @@ puts "maxConnections: #{maxConnections}"
 Vagrant.configure("2") do |config|
 
   config.vm.box = "stretch-" + krnlver
-  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
+  config.vm.box_url = "file://../boxes/stretch-" + krnlver + ".box"
 
   # https://github.com/mitchellh/vagrant/issues/2389
   # ensure all connections are virtio

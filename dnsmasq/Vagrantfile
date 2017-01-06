@@ -11,7 +11,7 @@ end
 Vagrant.configure("2") do |config|
 
   config.vm.box = "stretch-" + krnlver
-  config.vm.box_url = "file://~/vagrant/boxes/stretch-" + krnlver + ".box"
+  config.vm.box_url = "file://../boxes/stretch-" + krnlver + ".box"
   config.vm.hostname = "dnsmasq"
 
   config.vm.network :private_network, virtualbox__intnet: "mgmt", ip: "192.168.10.11/24"
