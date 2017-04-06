@@ -51,7 +51,7 @@ KRNLVER=4.8.7 vagrant up
 * this guest needs to be running for the subsequent guests
 
 ### Building a kernel
-* bldkrnlpkg - is used to build a new kernel from kernel.org (requires 8 to 8 GB harddrive)
+* bldkrnlpkg - is used to build a new kernel from kernel.org (requires 8 to 8 GB harddrive). OLDKRNLVER is assigned with whatever native kernel you built in the initial boostrap step.  NEWKRNLVER is whatever kernel you would like to build from kernel org.  Currently, a three digit version is required, so rc versions and 4.xx versions might pose a problem.
 ```
 OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up
 ```
