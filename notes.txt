@@ -6,10 +6,6 @@ git remote add origin https://github.com/rburkholder/vagrant.git
 git push -u origin master
 
 
-git remote add origin https://github.com/rburkholder/vagrant.git
-git push -u origin master
-
-
 20161121
 
 Note: that packaging uses drive C:, where there is a minimal amount of space, and that it isn't cleaned up
