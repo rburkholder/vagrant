@@ -122,31 +122,39 @@ function build {
   #  KCFLAGS="-fno-PIC -fno-PIE" 
   #    -j${CPUCNT} 
   #  KBUILD_VERBOSE=1 
-  time \
-    CPUCNT=$(grep ^processor /proc/cpuinfo|wc -l) \
-    MAKEFLAGS="CC=gcc-5 HOSTCC=gcc-5" \
-    CONCURRENCY_LEVEL=${CPUCNT} \
-    DEB_BUILD_OPTIONS="parallel=${CPUCNT}" \
-    make-kpkg \
-      --rootcmd fakeroot \
-      --revision=1 --append-to-version=-${SUFFIX} \
-      --initrd kernel_image kernel_headers
+#  time \
+#    CPUCNT=$(grep ^processor /proc/cpuinfo|wc -l) \
+#    MAKEFLAGS="CC=gcc-6 HOSTCC=gcc-6" \
+#    CONCURRENCY_LEVEL=${CPUCNT} \
+#    DEB_BUILD_OPTIONS="parallel=${CPUCNT}" \
+#    make-kpkg \
+#      --rootcmd fakeroot \
+#      --revision=1 --append-to-version=-${SUFFIX} \
+#      --initrd kernel_image kernel_headers
 
+  # http://www.linuxquestions.org/questions/debian-26/vanilla-kernel-cannot-stat-%91reporting-bugs%92-no-such-file-or-directory-4175601088/
+  # www.linuxquestions.org/questions/debian-26/kernel-versaion-4-1-and-4-2-upgrade-compile-guide-4175552272/
   # https://lists.debian.org/debian-kernel/2016/04/msg00575.html    bindeb-pkg
   # https://debian-handbook.info/browse/stable/sect.kernel-compilation.html 
   # EXTRAVERSION="-custom-amd64 KDEB_PKGVERSION=$(make kernelversion)-$(date +%Y%m%d).0 \
   # doesn't seem to solve the parallel build problem
-#  time \
 #    KCPPFLAGS="-fno-PIE" KCFLAGS="-fno-PIC -fno-PIE" \
-#    CONCURRENCY_LEVEL=$(grep processor /proc/cpuinfo | wc -l) \
-#    make \
-#      LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-1 \
-#      deb-pkg
+#    DEB_BUILD_OPTIONS="parallel=${CPUCNT}" \
+#    CONCURRENCY_LEVEL=${CPUCNT} \
+#DEB_BUILD_OPTIONS="parallel=${CPUCNT}"
+#CONCURRENCY_LEVEL=${CPUCNT}
+
+CPUCNT=$(grep ^processor /proc/cpuinfo|wc -l)
+  time \
+    make -j${CPUCNT} \
+      deb-pkg LOCALVERSION=-custom KDEB_PKGVERSION=$(make kernelversion)-1
 
   echo "move to directory ..."
   if [[ -d /vagrant_packages ]]; then
-    mv ../linux-headers-${KRNLVER}-${SUFFIX}_1_amd64.deb /vagrant_packages/
-    mv ../linux-image-${KRNLVER}-${SUFFIX}_1_amd64.deb /vagrant_packages/
+    mv ../linux-headers-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-headers-${KRNLVER}-${SUFFIX}-1_amd64.deb
+    mv ../linux-image-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux_image-${KRNLVER}-${SUFFIX}-1_amd64.deb
+    mv ../linux-firmware-image-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-firmware-image-${KRNLVER}-${SUFFIX}-1_amd64.deb
+    mv ../linux-libc-dev_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-libc-dev_${KRNLVER}-${SUFFIX}-1_amd64.deb
     fi
   }
 
