@@ -40,7 +40,7 @@ Vagrant.configure("2") do |config|
 
     s.name = "bldkernel"
     s.inline = <<-SHELL
-      sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
+      sed -r -i 's_http://[^/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
       su -c "bash /vagrant/buildkrnl.sh NEWKRNLVER" -s /bin/bash vagrant
       #bash /vagrant/buildkrnl.sh NEWKRNLVER
 SHELL
