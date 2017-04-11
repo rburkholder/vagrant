@@ -152,7 +152,7 @@ CPUCNT=$(grep ^processor /proc/cpuinfo|wc -l)
   echo "move to directory ..."
   if [[ -d /vagrant_packages ]]; then
     mv ../linux-headers-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-headers-${KRNLVER}-${SUFFIX}-1_amd64.deb
-    mv ../linux-image-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux_image-${KRNLVER}-${SUFFIX}-1_amd64.deb
+    mv ../linux-image-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-image-${KRNLVER}-${SUFFIX}-1_amd64.deb
     mv ../linux-firmware-image-${KRNLVER}-${SUFFIX}_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-firmware-image-${KRNLVER}-${SUFFIX}-1_amd64.deb
     mv ../linux-libc-dev_${KRNLVER}-1_amd64.deb /vagrant_packages/linux-libc-dev_${KRNLVER}-${SUFFIX}-1_amd64.deb
     fi

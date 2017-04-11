@@ -49,9 +49,9 @@ Vagrant.configure("2") do |config|
   config.vm.provision "newkernel", type: "shell" do |s|
     s.name = "newkernel"
     s.inline = <<-SHELL
-      sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
-      dpkg -i /vagrant_packages/linux-image-KRNLVER-custom_1_amd64.deb
-      dpkg -i /vagrant_packages/linux-headers-KRNLVER-custom_1_amd64.deb
+      sed -r -i 's_http://[^/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
+      dpkg -i /vagrant_packages/linux-image-KRNLVER-custom-1_amd64.deb
+      dpkg -i /vagrant_packages/linux-headers-KRNLVER-custom-1_amd64.deb
       echo "done."
     SHELL
     s.inline = s.inline.gsub(/KRNLVER/,krnlverbld)

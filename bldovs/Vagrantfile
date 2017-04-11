@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
     s.name = "building ..."
     s.inline = <<-SHELL
       # make sure things are updated
-      sed -r -i 's_http://[^:/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
+      sed -r -i 's_http://[^/]+/_http://192.168.10.10:3142/_g' /etc/apt/sources.list
       apt-get update
       apt-get -y upgrade
       echo "install necessary packages..."
