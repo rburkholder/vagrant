@@ -15,7 +15,7 @@
    * use expert mode to install, 
    * use targeted drivers (which keeps the image smaller),
    * don't allow root login, use 'vagrant' as the install user (which installs sudo, which is used by vagrant)
-   * for partitioning: create 100m /boot on ext4, remainder on / with btrfs (no swap)
+   * for partitioning: create 100m /boot on ext3 (don't use ext4 as it my complain of a missing crc32c module on some rebuilds), remainder on / with btrfs (no swap)
    * deselect all packages, enable only the ssh server package, 
 * once the build is complete, and the guest has rebooted:
  * create a port forward in the network->advanced settings, from 2002 to 22 for the guest  (just put in the two port numbers, no ip addresses required)
@@ -42,7 +42,7 @@ bash scripts/pack.sh stretch stretch-4.8.7
 ```
   * the first 'stretch' is the source VirtualBox image name, while 'stretch-4.8.7' is the destination Vagrant box package name, with the version of kernel it has
 
-### Package Proxy / Caching
+### pprx - Package Proxy / Caching
 * use the pprx to build and start a apt-cacher-ng based package proxy (helps make further local builds faster)
 * it has two interfaces:  an internal one and an external, allowing it to be used by virtual as well as physical clients
 ```
@@ -50,7 +50,7 @@ KRNLVER=4.8.7 vagrant up
 ```
 * this guest needs to be running for the subsequent guests
 
-### Building a kernel
+### bldkrnlpkg - Building a kernel
 * bldkrnlpkg - is used to build a new kernel from kernel.org (requires 8 to 10 GB harddrive). OLDKRNLVER is assigned with whatever native kernel you built in the initial boostrap step.  NEWKRNLVER is whatever kernel you would like to build from kernel org.  Currently, a three digit version is required, so rc versions and 4.xx versions might pose a problem.
 ```
 OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up
@@ -60,7 +60,7 @@ To optionally (re)build another kernel using the same image:
 OLDKRNLVER=4.8.7 NEWKRNLVER=4.8.12 vagrant up --provision-with bldkernel
 ```
 
-### VirtualBox Additions
+### additions - VirtualBox Additions
 * additions - used to install a new kernel and update the VirtualBox additions
 * once completed, make a new package
 ```
@@ -95,18 +95,18 @@ popd
 KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant destroy -f
 ```
 
-### Build Openvswitch packages
+### bldovs - Build Openvswitch packages
 * bldovs - is used to build openvswitch and ovn packages
 ```
  KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
 ```
 
-### Spool up OVN environment for testing
+### ovnlab - Spool up OVN environment for testing
 * ovnlab - makes use of the new kernel and ovs packages to run test environments
 ```
- KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
+ KRNLVER=4.8.10 vagrant up
 ```
-### DNSMASQ Used to install Linux on Lanner Box
+### dnsmasq - DNSMASQ Used to install Linux on Lanner Box
 * requires env KRNLVER: kernel version to use from packaged boxes
 * requires env ACTIVEINT: interface in dnsmasq box for physical interface to connect to Lanner box (maybe enp0s9)
 * Lanner box needs to be set for PXE boot mode (driveboot, followed by pxeboot)
