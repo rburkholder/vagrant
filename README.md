@@ -15,7 +15,7 @@
    * use expert mode to install, 
    * use targeted drivers (which keeps the image smaller),
    * don't allow root login, use 'vagrant' as the install user (which installs sudo, which is used by vagrant)
-   * for partitioning: create 100m /boot on ext3 (don't use ext4 as it my complain of a missing crc32c module on some rebuilds), remainder on / with btrfs (no swap)
+   * for partitioning: create 100m /boot on ext3 (don't use ext4 as it may complain of a missing crc32c module on some rebuilds), remainder on / with btrfs (no swap)
    * deselect all packages, enable only the ssh server package, 
 * once the build is complete, and the guest has rebooted:
  * create a port forward in the network->advanced settings, from 2002 to 22 for the guest  (just put in the two port numbers, no ip addresses required)
@@ -98,13 +98,13 @@ KRNLVERBASE=4.8.7 KRNLVERBLD=4.8.12 VBOXVER=5.1.10 vagrant destroy -f
 ### bldovs - Build Openvswitch packages
 * bldovs - is used to build openvswitch and ovn packages
 ```
- KRNLVER=4.8.10 OVSVER=2.6.1 vagrant up
+ KRNLVER=4.8.10 vagrant up
 ```
 
 ### ovnlab - Spool up OVN environment for testing
 * ovnlab - makes use of the new kernel and ovs packages to run test environments
 ```
- KRNLVER=4.8.10 vagrant up
+ KRNLVER=4.8.10 OVSVER=2.7.90 vagrant up
 ```
 ### dnsmasq - DNSMASQ Used to install Linux on Lanner Box
 * requires env KRNLVER: kernel version to use from packaged boxes
