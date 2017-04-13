@@ -3,6 +3,7 @@
 
 krnlver=ENV['KRNLVER']
 ovsver=ENV['OVSVER']
+consulver="0.8.0"
 
 if krnlver.nil? or ovsver.nil? then
   abort "need KRNLVER and OVSVER environment variables"
@@ -27,14 +28,16 @@ Vagrant.configure("2") do |config|
       dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
       dpkg -i /vagrant_packages/python-openvswitch_OVSVER-1_all.deb
       apt-get -y install python-pip unzip
-      wget -q https://releases.hashicorp.com/consul/0.7.2/consul_0.7.2_linux_amd64.zip
-      unzip consul_0.7.2_linux_amd64.zip
+      wget -q https://releases.hashicorp.com/consul/CONSULVER/consul_CONSULVER_linux_amd64.zip
+      unzip consul_CONSULVER_linux_amd64.zip
       mv consul /usr/local/sbin
+      pip install monotonic
       pip install networkx
       pip install ryu
       mkdir /var/log/ryu
     SHELL
     s.inline = s.inline.gsub(/OVSVER/,ovsver)
+    s.inline = s.inline.gsub(/CONSULVER/,consulver)
   end
 
   config.vm.provider "virtualbox" do |vb|
