@@ -5,6 +5,7 @@ from ryu.controller.handler import set_ev_cls
 from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 from ryu.ofproto import ofproto_v1_4
+#from ryu.ofproto import ofproto_v1_3
 from ryu import utils
 from ryu.controller.controller import Datapath
 
@@ -26,6 +27,7 @@ from ryu.topology.api import get_switch, get_link
 #   start analyzing events and building flows
 
 class test1(app_manager.RyuApp):
+#  OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
   OFP_VERSIONS = [ofproto_v1_4.OFP_VERSION]
 
   def __init__(self, *args, **kwargs):
@@ -80,9 +82,7 @@ class test1(app_manager.RyuApp):
                        'datapath_id=%016x', datapath.id
                        )
     elif ev.state == DEAD_DISPATCHER:
-      self.logger.info('**OFPStateChange DEAD received: '
-                       'datapath_id=%016x', datapath.id
-                       )
+      self.logger.info('**OFPStateChange DEAD received ' )
 
   @set_ev_cls(dpset.EventPortModify, MAIN_DISPATCHER)
   def port_modify_handler(self, ev):
@@ -146,7 +146,10 @@ class test1(app_manager.RyuApp):
     #  actions=actions)
     #dp.send_msg(out)
 
+#   version 1.4
     if msg.reason == ofproto.OFPR_TABLE_MISS:
+#   version 1.3
+#    if msg.reason == ofproto.OFPR_NO_MATCH:
         reason = 'TABLE MISS'
     elif msg.reason == ofproto.OFPR_APPLY_ACTION:
         reason = 'APPLY ACTION'
