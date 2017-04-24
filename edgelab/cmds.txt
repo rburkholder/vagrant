@@ -15,9 +15,18 @@ https://osrg.github.io/ryu-book/en/html/openflow_protocol.html   OFPP_NORMAL
 ryu run --observe-links /usr/local/lib/python2.7/dist-packages/ryu/app/gui_topology/gui_topology.py --install-lldp-flow
 ryu run --observe-links /vagrant/test1.py --install-lldp-flow
 
-
 to look at the output of 'ovs-dpctl show' for a view on how the OVS kernel module is configured by ovs-vswitchd
 
 mn --test pingall
 mn --controller=remote,ip=127.0.0.1 --switch ovsk,protocols=OpenFlow14
+
+http://localhost:8500/ui
+
+/usr/local/sbin/consul members
+
+2017/04/24 operation commands for one server test:
+/usr/local/sbin/consul agent -server -bootstrap -ui -data-dir=/tmp/consul -bind=10.0.2.15 -client=10.2.0.15
+ryu run --observe-links /vagrant/test1.py --install-lldp-flow
+mn --custom /vagrant/topo-3s-3h.py --topo t3s3h --controller=remote,ip=127.0.0.1 --switch ovsk,protocols=OpenFlow14
+tshark -i lo
 

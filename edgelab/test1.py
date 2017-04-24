@@ -33,7 +33,8 @@ class test1(app_manager.RyuApp):
   def __init__(self, *args, **kwargs):
     super(test1, self).__init__(*args, **kwargs)
 
-    self.mac_to_port = {}
+    self.datapath = {} # keyed by datapath_id
+    self.mac_to_port = {} # keyed by mac
     self.topology_api_app = self
     self.nodes = {}
     self.links = {}
@@ -53,7 +54,9 @@ class test1(app_manager.RyuApp):
     actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                       ofproto.OFPCML_NO_BUFFER
                                       )]
-    self.add_flow(datapath, 10, match, actions )
+    # set to 0 based upon:
+    # https://github.com/osrg/ryu/blob/master/ryu/app/simple_switch_snort.py
+    self.add_flow(datapath, 0, match, actions )
 
     self.logger.info('**OFPSwitchFeatures received: '
                       'datapath_id=0x%016x n_buffers=%d '
@@ -123,12 +126,12 @@ class test1(app_manager.RyuApp):
 
   @set_ev_cls(event.EventSwitchLeave, [MAIN_DISPATCHER, CONFIG_DISPATCHER, DEAD_DISPATCHER])
   def handler_switch_leave(self, ev):
-    self.logger.info("**Not tracking Switches, switch left.")
+    self.logger.info("**Not tracking Switch, switch left.")
 
   @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
   def packet_in_handler(self, ev):
 
-    self.logger.info('**packet_in')
+    # self.logger.info('**packet_in')
 
     msg      = ev.msg
     datapath = msg.datapath
@@ -164,14 +167,25 @@ class test1(app_manager.RyuApp):
     else:
         reason = 'unknown'
 
-    self.logger.info('**OFPPacketIn received: '
+    if True:
+      self.logger.info('**OFPPacketIn: '
+                      'datapath_id=%016x '
+                      'buffer_id=%x total_len=%d reason=%s '
+                      'table_id=%d cookie=%d match=%s',
+                      datapath.id,
+                      msg.buffer_id, msg.total_len, reason,
+                      msg.table_id, msg.cookie, msg.match
+                      )
+    else:
+      self.logger.info('**OFPPacketIn: '
                       'datapath_id=%016x '
                       'buffer_id=%x total_len=%d reason=%s '
                       'table_id=%d cookie=%d match=%s data=%s',
                       datapath.id,
                       msg.buffer_id, msg.total_len, reason,
                       msg.table_id, msg.cookie, msg.match,
-                      utils.hex_array(msg.data))
+                      utils.hex_array(msg.data)
+                      )
 
   @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
   def port_status_handler(self, ev):
