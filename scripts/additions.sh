@@ -76,6 +76,12 @@ function guestadditions {
   rmdir /media/VBoxGuestAdditions
   rm VBoxGuestAdditions_${VBOXVER}.iso 
 
+  # https://dsin.wordpress.com/2016/08/17/ubuntu-wrong-fs-type-bad-option-bad-superblock/
+  if [ "5.1.20" == "${VBOXVER}" ]; then
+    rm /sbin/mount.vboxsf
+    ln -s /usr/lib/VBoxGuestAdditions/mount.vboxsf /sbin/mount.vboxsf
+    fi
+
   }
 
 function build {
@@ -132,6 +138,7 @@ else
     echo "  clean:         remove package cruft"
     echo "  key:           install default vagrant key"
     echo "  build VBOXVER: build additions only (custom kernel)"
+    echo "  stock VBOXVER: build additions only (stock kernel)"
     echo "  all VBOXVER:   install sudoer, keys, and build (default kernel)"
   else
     case "$1" in
@@ -145,6 +152,11 @@ else
         # customized headers have been installed
         VBOXVER=$2
         build ${VBOXVER}
+        ;;
+      stock)
+        # customized headers have been installed
+        VBOXVER=$2
+        build ${VBOXVER} linux-headers-$(uname -r)
         ;;
       all)
         # sudo and ssh key are one time settings
