@@ -25,7 +25,7 @@ http://localhost:8500/ui
 /usr/local/sbin/consul members
 
 2017/04/24 operation commands for one server test:
-/usr/local/sbin/consul agent -server -bootstrap -ui -data-dir=/tmp/consul -bind=10.0.2.15 -client=10.2.0.15
+/usr/local/sbin/consul agent -server -bootstrap -ui -data-dir=/tmp/consul -bind=10.0.2.15 -client=10.0.2.15
 ryu run --observe-links /vagrant/test1.py --install-lldp-flow
 mn --custom /vagrant/topo-3s-3h.py --topo t3s3h --controller=remote,ip=127.0.0.1 --switch ovsk,protocols=OpenFlow14
 tshark -i lo

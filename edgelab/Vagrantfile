@@ -35,8 +35,8 @@ Vagrant.configure("2") do |config|
       pip install monotonic
       pip install networkx
       pip install ryu
-      sed -i '/^[ ]+import eventlet$/ a eventlet.sleep()' /usr/local/lib/python2.7/dist-packages/ryu/lib/hub.py
-      sed -i 's/^eventlet.sleep()$/    eventlet.sleep()/' /usr/local/lib/python2.7/dist-packages/ryu/lib/hub.py
+      sed -i -E '/^[ \t]+import eventlet$/ a eventlet.sleep()' /usr/local/lib/python2.7/dist-packages/ryu/lib/hub.py
+      sed -i    's/^eventlet.sleep()$/    eventlet.sleep()/' /usr/local/lib/python2.7/dist-packages/ryu/lib/hub.py
       mkdir /var/log/ryu
       apt-get -y install git
 #     apt-get -y install tshark
