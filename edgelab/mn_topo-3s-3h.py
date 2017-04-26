@@ -3,7 +3,7 @@
 Three directly connected switches, plus a host for each switch
 
 On the command line:
-  --topo=T3s3h
+  --topo=t3s3h
 """
 
 # http://mininet.org/walkthrough/#custom-topologies
@@ -60,7 +60,7 @@ def RunWithTopo():
   net.start()
 
   # run command line interface
-  CLI( net )
+#  CLI( net )
 
   # on exit from cli, clean up and quite
   net.stop()
