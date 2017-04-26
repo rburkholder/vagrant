@@ -26,7 +26,27 @@ http://localhost:8500/ui
 
 2017/04/24 operation commands for one server test:
 /usr/local/sbin/consul agent -server -bootstrap -ui -data-dir=/tmp/consul -bind=10.0.2.15 -client=10.0.2.15
-ryu run --observe-links /vagrant/test1.py --install-lldp-flow
+ryu run --verbose --observe-links /vagrant/test1.py --install-lldp-flow
 mn --custom /vagrant/topo-3s-3h.py --topo t3s3h --controller=remote,ip=127.0.0.1 --switch ovsk,protocols=OpenFlow14
 tshark -i lo
 
+consul web:
+https://www.consul.io/docs/guides/bootstrapping.html  -  boot strapping a datacenter
+https://jee-appy.blogspot.com/2015/09/consul-setup-tutorial.html - 2015 consul installation
+
+
+
+https://github.com/osrg/ryu/blob/master/ryu/app/simple_switch_snort.py - connect snort to ryu
+
+# from https://wiki.wireshark.org/OpenFlow
+tshark -G fields | grep -i openflow_v4
+tshark -G decodes | grep -i openflow
+# to decode on a specific port known as openflow  (default to 6653)
+tshark -d tcp.port==6633,openflow -r file.pcapng
+
+# good 183 doc on ryu, openflow
+# upcommons.upc.edu/bitstream/handle/2117/77684/sdn-book.pdf.zip
+
+# mininet examples
+# http://nullege.com/codes/search/mininet
+# http://nullege.com/codes/search/ryu
