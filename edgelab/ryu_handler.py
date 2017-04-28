@@ -15,6 +15,7 @@ from ryu.controller import dpset
 from ryu.topology import event, switches
 from ryu.topology.api import get_switch, get_link
 
+import consul
 
 # init with:
 #   mkdir /var/log/ryu
@@ -41,6 +42,8 @@ class test1(app_manager.RyuApp):
     self.no_of_nodes = 0
     self.no_of_links = 0
     self.i=0
+
+    self.consul = consul.Consul( host = '10.0.2.15' )
 
   @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
   def switch_features_handler(self, ev):
@@ -77,14 +80,26 @@ class test1(app_manager.RyuApp):
                             )
     datapath.send_msg(mod)
 
-  @set_ev_cls(ofp_event.EventOFPStateChange, [MAIN_DISPATCHER, DEAD_DISPATCHER])
+  @set_ev_cls(ofp_event.EventOFPStateChange, [MAIN_DISPATCHER, DEAD_DISPATCHER, CONFIG_DISPATCHER, HANDSHAKE_DISPATCHER ])
   def state_change_handler(self,ev):
     datapath = ev.datapath
     if ev.state == MAIN_DISPATCHER:
+      self.consul.kv.put( 'mn_ryu/state', 'MAIN' )
+      # datapath.id is available only in MAIN_DISPATCHER
       self.logger.info('OFPStateChange MAIN received: '
                        'datapath_id=%016x', datapath.id
                        )
+    elif ev.state == HANDSHAKE_DISPATCHER:
+      self.consul.kv.put( 'mn_ryu/state', 'HANDSHAKE' )
+      self.logger.info('OFPStateChange HANDSHAKE received'
+                      )
+    elif ev.state == CONFIG_DISPATCHER:
+      self.consul.kv.put( 'mn_ryu/state', 'CONFIG' )
+      self.logger.info('OFPStateChange CONFIG received'
+                      )
     elif ev.state == DEAD_DISPATCHER:
+      # no datapath for a DEAD
+      self.consul.kv.put( 'mn_ryu/state', 'DEAD' )
       self.logger.info('**OFPStateChange DEAD received ' )
 
   @set_ev_cls(dpset.EventPortModify, MAIN_DISPATCHER)
