@@ -20,12 +20,21 @@ import consul
 # init with:
 #   mkdir /var/log/ryu
 
-# started with:
-#   ryu-manager --observe-links --use-stderr --install-lldp-flow --verbose /vagrant/test1.py
-
 # todo:
 #   network discovery using the sample code
 #   start analyzing events and building flows
+
+# primary ryu events:http://ryu.readthedocs.io/en/latest/ryu_app_api.html
+
+# started with (obsolete):
+#   ryu-manager --observe-links --use-stderr --install-lldp-flow --verbose /vagrant/test1.py
+# three ways to run, the first gets less data, but can it be realized without the extra module?
+# build the structures with the first to see how far we get
+#   208  ryu run --verbose  /vagrant/ryu_handler.py
+#   208  ryu run --verbose  /vagrant/ryu_handler.py --install-lldp-flow
+#   209  ryu run --verbose --observe-links /vagrant/ryu_handler.py --install-lldp-flow
+
+# TODO; for part of this testing, delete the key hierarchy in consul to ensure proper rebuild each time
 
 class test1(app_manager.RyuApp):
 #  OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -84,8 +93,9 @@ class test1(app_manager.RyuApp):
     n = '{}'.format( msg.capabilities )
     self.consul.kv.put( 'mn_ryu/state/' + id + '/features/capabilities', n )
 
-    #self.datapath[ datapath.id ][ 'features' ] = features 
-
+    # makes assumption that datapath has been populated in StateChange
+    self.datapath[ datapath.id ] = {}
+    self.datapath[ datapath.id ][ 'features' ] = features 
 
   def add_flow(self, datapath, priority, match, actions):
     ofproto = datapath.ofproto
@@ -131,10 +141,67 @@ class test1(app_manager.RyuApp):
       #self.consul.kv.put( 'mn_ryu/state', 'DEAD' )
       self.logger.info('----OFPStateChange DEAD received ' )
 
-  @set_ev_cls(dpset.EventPortModify, MAIN_DISPATCHER)
-  def port_modify_handler(self, ev):
-    self.logger.info('**EventPortModify')
+  @set_ev_cls(event.EventSwitchRequest)
+  def HandleEventSwitchRequest(self, event):
+    print("^^^^EventSwitchRequest ", event)
 
+  @set_ev_cls(event.EventLinkRequest)
+  def HandleEventLinkRequest(self, event):
+    print("^^^EventLinkRequest ", event)
+
+  def DecodePort(self, OFPPort):  # OFPPort
+    item = OFPPort
+    port = {}
+    port['id'] = item.port_no
+    port['mac'] = item.hw_addr
+    port['length'] = item.length # dunno what this is
+    port['name'] = item.name
+    port['state'] = item.state
+    for desc in item.properties:
+      #print('&&&&&:', type(desc))
+      if 0 == desc.type:
+        port['speed'] = desc.curr_speed
+    self.logger.info(port)
+    return port
+
+  # for definitions: http://ryu.readthedocs.io/en/latest/ofproto_v1_4_ref.html
+  @set_ev_cls(dpset.EventDP)
+  def HandleEventDP(self, event):
+      # EventOFPStateChange has subset of this info, so use this state instead for info gathering?
+    #print("^^^^^", event.dp.id)
+    #print("^^^^^", event.enter) # true for switch connected, false for swtich disconnected
+    #print("^^^^^", event.ports)
+    ports = {}
+    for item in event.ports:
+      #print( '&&&:', type(item))
+      #print( '&&&&:', item )
+      # id 4294967294 is the switch name
+      port = self.DecodePort( item )
+      #self.logger.info( port )
+      ports[port['id']] = port
+    #print ports
+
+  # not called as part of startup or shutdown
+  @set_ev_cls(dpset.EventPortAdd)
+  def HandleEventPortAdd(self, event):
+    dp = event.dp # datapath
+    port = self.DecodePort( event.port )
+    self.logger.info("------ HandleEventPortAdd dp %d port %s", dp.id, port['name'] )
+
+  # not called as part of startup or shutdown
+  @set_ev_cls(dpset.EventPortDelete)
+  def HandleEventPortDelete(self, event):
+    dp = event.dp
+    port = self.DecodePort( event.port )
+    self.logger.info("$$$$$ HandleEventPortDelete dp %d port %s", dp.id, port['name'] )
+
+  @set_ev_cls(dpset.EventPortModify)
+  def HandleEventPortModify(self, event):
+    dp = event.dp
+    port = self.DecodePort( event.port )
+    self.logger.info("$$$$$ HandleEventPortModify dp %d port %s", dp.id, port['name'] )
+
+  # makes use of --verbose and the topology library
   @set_ev_cls(event.EventSwitchEnter)
   def get_topology_data(self, ev):
     switch_list = get_switch(self.topology_api_app, None)
@@ -231,23 +298,24 @@ class test1(app_manager.RyuApp):
                       utils.hex_array(msg.data)
                       )
 
-  @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
-  def port_status_handler(self, ev):
-    msg = ev.msg
-    dp = msg.datapath
-    ofp = dp.ofproto
-
-    if msg.reason == ofp.OFPPR_ADD:
-        reason = 'ADD'
-    elif msg.reason == ofp.OFPPR_DELETE:
-        reason = 'DELETE'
-    elif msg.reason == ofp.OFPPR_MODIFY:
-        reason = 'MODIFY'
-    else:
-        reason = 'unknown'
-
-    self.logger.info('**OFPPortStatus received: reason=%s desc=%s',
-                      reason, msg.desc)
+  # don't really need this as we monitor the original Add, Delete, Modify events
+#  @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
+#  def port_status_handler(self, ev):
+#    msg = ev.msg
+#    dp = msg.datapath
+#    ofp = dp.ofproto
+#
+#    if msg.reason == ofp.OFPPR_ADD:
+#        reason = 'ADD'
+#    elif msg.reason == ofp.OFPPR_DELETE:
+#        reason = 'DELETE'
+#    elif msg.reason == ofp.OFPPR_MODIFY:
+#        reason = 'MODIFY'
+#    else:
+#        reason = 'unknown'
+#
+#    self.logger.info('**OFPPortStatus received: reason=%s desc=%s',
+#                      reason, msg.desc)
 
   @set_ev_cls(ofp_event.EventOFPPortStateChange, MAIN_DISPATCHER)
   def port_state_change(self,ev):
