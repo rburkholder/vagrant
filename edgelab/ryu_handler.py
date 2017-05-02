@@ -61,12 +61,31 @@ class test1(app_manager.RyuApp):
     # https://github.com/osrg/ryu/blob/master/ryu/app/simple_switch_snort.py
     self.add_flow(datapath, 0, match, actions )
 
+    id = '0x{0:016x}'.format(datapath.id)
+
     self.logger.info('**OFPSwitchFeatures received: '
                       'datapath_id=0x%016x n_buffers=%d '
                       'n_tables=%d auxiliary_id=%d '
                       'capabilities=0x%08x',
                       msg.datapath_id, msg.n_buffers, msg.n_tables,
                       msg.auxiliary_id, msg.capabilities)
+
+    features = {}
+
+    features[ 'nbuffers' ] = msg.n_buffers
+    n = '{}'.format( msg.n_buffers )
+    self.consul.kv.put( 'mn_ryu/state/' + id + '/features/nbuffers', n )
+
+    features[ 'ntables' ] = msg.n_tables
+    n = '{}'.format( msg.n_tables )
+    self.consul.kv.put( 'mn_ryu/state/' + id + '/features/ntables', n )
+
+    features[ 'capabilities' ] = msg.capabilities
+    n = '{}'.format( msg.capabilities )
+    self.consul.kv.put( 'mn_ryu/state/' + id + '/features/capabilities', n )
+
+    #self.datapath[ datapath.id ][ 'features' ] = features 
+
 
   def add_flow(self, datapath, priority, match, actions):
     ofproto = datapath.ofproto
@@ -84,23 +103,33 @@ class test1(app_manager.RyuApp):
   def state_change_handler(self,ev):
     datapath = ev.datapath
     if ev.state == MAIN_DISPATCHER:
-      self.consul.kv.put( 'mn_ryu/state', 'MAIN' )
       # datapath.id is available only in MAIN_DISPATCHER
-      self.logger.info('OFPStateChange MAIN received: '
-                       'datapath_id=%016x', datapath.id
-                       )
+      id = '0x{0:016x}'.format(datapath.id)
+      self.logger.info( "---OFPStateChange Main dp=%s", id )
+      self.datapath[ datapath.id ] = 'StateChange Main'
+      self.consul.kv.put( 'mn_ryu/state/' + id, 'StateChange MAIN' )
     elif ev.state == HANDSHAKE_DISPATCHER:
-      self.consul.kv.put( 'mn_ryu/state', 'HANDSHAKE' )
-      self.logger.info('OFPStateChange HANDSHAKE received'
-                      )
+      #self.consul.kv.put( 'mn_ryu/state', 'HANDSHAKE' )
+      #id = '0x{0:016x}'.format(datapath.id)
+      if datapath.id is not None:
+        self.logger.info( "-OFPStateChange Handshake dp=%s", datapath.id )
+        self.datapath[ datapath.id ] = 'StateChange Handshake'
+        self.consul.kv.put( 'mn_ryu/state/' + datapath.id, 'StateChange HANDSHAKE' )
+      else:
+        self.logger.info( "-OFPStateChange HANDSHAKE" )
     elif ev.state == CONFIG_DISPATCHER:
-      self.consul.kv.put( 'mn_ryu/state', 'CONFIG' )
-      self.logger.info('OFPStateChange CONFIG received'
-                      )
+      #self.consul.kv.put( 'mn_ryu/state', 'CONFIG' )
+      #id = '0x{0:016x}'.format(datapath.id)
+      if datapath.id is not None:
+        self.logger.info( "--OFPStateChange Config dp=%s", datapath.id )
+        self.datapath[ datapath.id ] = 'StateChange Config'
+        self.consul.kv.put( 'mn_ryu/state/' + datapath.id, 'StateChange CONFIG' )
+      else:
+        self.logger.info( "--OFPStateChange CONFIG" )
     elif ev.state == DEAD_DISPATCHER:
       # no datapath for a DEAD
-      self.consul.kv.put( 'mn_ryu/state', 'DEAD' )
-      self.logger.info('**OFPStateChange DEAD received ' )
+      #self.consul.kv.put( 'mn_ryu/state', 'DEAD' )
+      self.logger.info('----OFPStateChange DEAD received ' )
 
   @set_ev_cls(dpset.EventPortModify, MAIN_DISPATCHER)
   def port_modify_handler(self, ev):
