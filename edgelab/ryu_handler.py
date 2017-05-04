@@ -70,7 +70,9 @@ class test1(app_manager.RyuApp):
     # https://github.com/osrg/ryu/blob/master/ryu/app/simple_switch_snort.py
     self.add_flow(datapath, 0, match, actions )
 
-    id = '0x{0:016x}'.format(datapath.id)
+    #id = '0x{0:016x}'.format(datapath.id)
+    sId = str(datapath.id)
+
 
     self.logger.info('**OFPSwitchFeatures received: '
                       'datapath_id=0x%016x n_buffers=%d '
@@ -83,15 +85,15 @@ class test1(app_manager.RyuApp):
 
     features[ 'nbuffers' ] = msg.n_buffers
     n = '{}'.format( msg.n_buffers )
-    self.consul.kv.put( 'mn_ryu/state/' + id + '/features/nbuffers', n )
+    self.consul.kv.put( 'mn_ryu/state/' + sId + '/features/nbuffers', n )
 
     features[ 'ntables' ] = msg.n_tables
     n = '{}'.format( msg.n_tables )
-    self.consul.kv.put( 'mn_ryu/state/' + id + '/features/ntables', n )
+    self.consul.kv.put( 'mn_ryu/state/' + sId + '/features/ntables', n )
 
     features[ 'capabilities' ] = msg.capabilities
     n = '{}'.format( msg.capabilities )
-    self.consul.kv.put( 'mn_ryu/state/' + id + '/features/capabilities', n )
+    self.consul.kv.put( 'mn_ryu/state/' + sId + '/features/capabilities', n )
 
     # makes assumption that datapath has been populated in StateChange
     self.datapath[ datapath.id ] = {}
@@ -114,26 +116,26 @@ class test1(app_manager.RyuApp):
     datapath = ev.datapath
     if ev.state == MAIN_DISPATCHER:
       # datapath.id is available only in MAIN_DISPATCHER
-      id = '0x{0:016x}'.format(datapath.id)
+      #id = '0x{0:016x}'.format(datapath.id)
       self.logger.info( "---OFPStateChange Main dp=%s", id )
       self.datapath[ datapath.id ] = 'StateChange Main'
-      self.consul.kv.put( 'mn_ryu/state/' + id, 'StateChange MAIN' )
+      self.consul.kv.put( 'mn_ryu/state/' + str(datapath.id), 'StateChange MAIN' )
     elif ev.state == HANDSHAKE_DISPATCHER:
       #self.consul.kv.put( 'mn_ryu/state', 'HANDSHAKE' )
       #id = '0x{0:016x}'.format(datapath.id)
       if datapath.id is not None:
-        self.logger.info( "-OFPStateChange Handshake dp=%s", datapath.id )
+        self.logger.info( "-OFPStateChange Handshake dp=%d", datapath.id )
         self.datapath[ datapath.id ] = 'StateChange Handshake'
-        self.consul.kv.put( 'mn_ryu/state/' + datapath.id, 'StateChange HANDSHAKE' )
+        self.consul.kv.put( 'mn_ryu/state/' + str(datapath.id), 'StateChange HANDSHAKE' )
       else:
         self.logger.info( "-OFPStateChange HANDSHAKE" )
     elif ev.state == CONFIG_DISPATCHER:
       #self.consul.kv.put( 'mn_ryu/state', 'CONFIG' )
       #id = '0x{0:016x}'.format(datapath.id)
       if datapath.id is not None:
-        self.logger.info( "--OFPStateChange Config dp=%s", datapath.id )
+        self.logger.info( "--OFPStateChange Config dp=%d", datapath.id )
         self.datapath[ datapath.id ] = 'StateChange Config'
-        self.consul.kv.put( 'mn_ryu/state/' + datapath.id, 'StateChange CONFIG' )
+        self.consul.kv.put( 'mn_ryu/state/' + str(datapath.id), 'StateChange CONFIG' )
       else:
         self.logger.info( "--OFPStateChange CONFIG" )
     elif ev.state == DEAD_DISPATCHER:
@@ -158,16 +160,17 @@ class test1(app_manager.RyuApp):
     port['name'] = item.name
     port['state'] = item.state
     for desc in item.properties:
-      #print('&&&&&:', type(desc))
       if 0 == desc.type:
         port['speed'] = desc.curr_speed
-    self.logger.info(port)
+    #self.logger.info(port)
     return port
 
   # for definitions: http://ryu.readthedocs.io/en/latest/ofproto_v1_4_ref.html
   @set_ev_cls(dpset.EventDP)
   def HandleEventDP(self, event):
-      # EventOFPStateChange has subset of this info, so use this state instead for info gathering?
+    # EventOFPStateChange has subset of this info, so use this state instead for info gathering?
+    # the switch has a mac, maybe use it sometime?
+    # ^^^^ EventDP: 1 86:44:9f:d1:c6:4c s1 0 4294967294
     #print("^^^^^", event.dp.id)
     #print("^^^^^", event.enter) # true for switch connected, false for swtich disconnected
     #print("^^^^^", event.ports)
@@ -179,27 +182,38 @@ class test1(app_manager.RyuApp):
       port = self.DecodePort( item )
       #self.logger.info( port )
       ports[port['id']] = port
+      self.logger.info( '^^^^ EventDP: %d %s %s %d %d', port['state'], port['mac'], port['name'], port['speed'], port['id'] )
     #print ports
+
+  def UpdateConsulDatapathPort( self, dpid, reason, port):
+    # TODO:  need to update local structures, and maybe use the local structure to update consul?
+    self.logger.info( '^^^^ ' + reason + ': %d %d %s %s %d %d', dpid, port['state'], port['mac'], port['name'], port['speed'], port['id'] )
+    self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']), reason )
+    self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']) + '/name', port['name'] )
+    self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']) + '/mac', port['mac'] )
+    self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']) + '/state', str(port['state']) )
+    self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']) + '/speed', str(port['speed']) )
+    
 
   # not called as part of startup or shutdown
   @set_ev_cls(dpset.EventPortAdd)
   def HandleEventPortAdd(self, event):
     dp = event.dp # datapath
     port = self.DecodePort( event.port )
-    self.logger.info("------ HandleEventPortAdd dp %d port %s", dp.id, port['name'] )
+    self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortAdd', port )
 
   # not called as part of startup or shutdown
   @set_ev_cls(dpset.EventPortDelete)
   def HandleEventPortDelete(self, event):
     dp = event.dp
     port = self.DecodePort( event.port )
-    self.logger.info("$$$$$ HandleEventPortDelete dp %d port %s", dp.id, port['name'] )
+    self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortDelete', port )
 
   @set_ev_cls(dpset.EventPortModify)
   def HandleEventPortModify(self, event):
     dp = event.dp
     port = self.DecodePort( event.port )
-    self.logger.info("$$$$$ HandleEventPortModify dp %d port %s", dp.id, port['name'] )
+    self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortModify', port )
 
   # makes use of --verbose and the topology library
   @set_ev_cls(event.EventSwitchEnter)

@@ -26,15 +26,15 @@ class Topo3s3h( Topo ):
     protocols = [ 'OpenFlow14' ]
 
     # Add hosts and switches
-    topHost = self.addHost( 'h1' )
+    topHost = self.addHost( 's1h1' )
     topSwitch = self.addSwitch( 's1', protocols = protocols )
     self.addLink( topHost, topSwitch )
 
-    leftHost = self.addHost( 'h2' )
+    leftHost = self.addHost( 's2h1' )
     leftSwitch = self.addSwitch( 's2', protocols = protocols )
     self.addLink( leftHost, leftSwitch )
 
-    rightHost = self.addHost( 'h3' )
+    rightHost = self.addHost( 's3h1' )
     rightSwitch = self.addSwitch( 's3', protocols = protocols )
     self.addLink( rightHost, rightSwitch )
 
