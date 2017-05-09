@@ -96,6 +96,7 @@ class test1(app_manager.RyuApp):
   def HandleEventPortAdd(self, event):
     dp = event.dp # datapath
     port = self.DecodePort( event.port )
+    self.logger.info( '^^^^ EventPortAdd: %d %s %s %d %d', port['state'], port['mac'], port['name'], port['speed'], port['id'] )
     #self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortAdd', port )
 
   # not called as part of startup or shutdown
@@ -103,12 +104,14 @@ class test1(app_manager.RyuApp):
   def HandleEventPortDelete(self, event):
     dp = event.dp
     port = self.DecodePort( event.port )
+    self.logger.info( '^^^^ EventPortDelete: %d %s %s %d %d', port['state'], port['mac'], port['name'], port['speed'], port['id'] )
     #self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortDelete', port )
 
   @set_ev_cls(dpset.EventPortModify)
   def HandleEventPortModify(self, event):
     dp = event.dp
     port = self.DecodePort( event.port )
+    self.logger.info( '^^^^ EventPortModify: %d %s %s %d %d', port['state'], port['mac'], port['name'], port['speed'], port['id'] )
     #self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortModify', port )
 
   # don't really need this as we monitor the original Add, Delete, Modify events
