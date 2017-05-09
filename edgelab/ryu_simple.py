@@ -11,8 +11,8 @@ from ryu.controller.controller import Datapath
 from ryu.controller import dpset
 
 class test1(app_manager.RyuApp):
-  OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION, ofproto_v1_2.OFP_VERSION,
-                    ofproto_v1_3.OFP_VERSION, ofproto_v1_4.OFP_VERSION]
+  OFP_VERSIONS = [
+                    ofproto_v1_4.OFP_VERSION]
   def __init__(self, *args, **kwargs):
     super(test1, self).__init__(*args, **kwargs)
 
@@ -96,20 +96,20 @@ class test1(app_manager.RyuApp):
   def HandleEventPortAdd(self, event):
     dp = event.dp # datapath
     port = self.DecodePort( event.port )
-    self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortAdd', port )
+    #self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortAdd', port )
 
   # not called as part of startup or shutdown
   @set_ev_cls(dpset.EventPortDelete)
   def HandleEventPortDelete(self, event):
     dp = event.dp
     port = self.DecodePort( event.port )
-    self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortDelete', port )
+    #self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortDelete', port )
 
   @set_ev_cls(dpset.EventPortModify)
   def HandleEventPortModify(self, event):
     dp = event.dp
     port = self.DecodePort( event.port )
-    self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortModify', port )
+    #self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortModify', port )
 
   # don't really need this as we monitor the original Add, Delete, Modify events
   #  isn't being called during port setup
