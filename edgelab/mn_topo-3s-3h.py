@@ -16,6 +16,7 @@ from mininet.log import setLogLevel
 from mininet.net import Mininet
 from mininet.node import RemoteController, OVSKernelSwitch, OVSSwitch
 
+# http://mininet.org/api/classmininet_1_1net_1_1Mininet.html
 class Topo3s3h( Topo ):
   " topo: three switches, three hosts"
 

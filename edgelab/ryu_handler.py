@@ -1,19 +1,19 @@
 from ryu.base import app_manager
+from ryu.controller import dpset
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, CONFIG_DISPATCHER, DEAD_DISPATCHER, HANDSHAKE_DISPATCHER
 from ryu.controller.handler import set_ev_cls
-from ryu.lib.packet import packet
-from ryu.lib.packet import ethernet
+#from ryu.lib.packet import packet
+#from ryu.lib.packet import ethernet
 from ryu.ofproto import ofproto_v1_4
 #from ryu.ofproto import ofproto_v1_3
-from ryu import utils
-from ryu.controller.controller import Datapath
+#from ryu import utils
+#from ryu.controller.controller import Datapath
 
-from ryu.topology import event
-from ryu.controller import dpset
+#from ryu.topology import event
 
-from ryu.topology import event, switches
-from ryu.topology.api import get_switch, get_link
+#from ryu.topology import event, switches
+#from ryu.topology.api import get_switch, get_link
 
 import consul
 
@@ -35,6 +35,8 @@ import consul
 #   209  ryu run --verbose --observe-links /vagrant/ryu_handler.py --install-lldp-flow
 
 # TODO; for part of this testing, delete the key hierarchy in consul to ensure proper rebuild each time
+
+# decoding a packet:  http://ryu.readthedocs.io/en/latest/library_packet.html
 
 class test1(app_manager.RyuApp):
 #  OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -143,13 +145,13 @@ class test1(app_manager.RyuApp):
       #self.consul.kv.put( 'mn_ryu/state', 'DEAD' )
       self.logger.info('----OFPStateChange DEAD received ' )
 
-  @set_ev_cls(event.EventSwitchRequest)
-  def HandleEventSwitchRequest(self, event):
-    print("^^^^EventSwitchRequest ", event)
+#  @set_ev_cls(event.EventSwitchRequest)
+#  def HandleEventSwitchRequest(self, event):
+#    print("^^^^EventSwitchRequest ", event)
 
-  @set_ev_cls(event.EventLinkRequest)
-  def HandleEventLinkRequest(self, event):
-    print("^^^EventLinkRequest ", event)
+#  @set_ev_cls(event.EventLinkRequest)
+#  def HandleEventLinkRequest(self, event):
+#    print("^^^EventLinkRequest ", event)
 
   def DecodePort(self, OFPPort):  # OFPPort
     item = OFPPort
@@ -171,8 +173,7 @@ class test1(app_manager.RyuApp):
     # EventOFPStateChange has subset of this info, so use this state instead for info gathering?
     # the switch has a mac, maybe use it sometime?
     # ^^^^ EventDP: 1 86:44:9f:d1:c6:4c s1 0 4294967294
-    #print("^^^^^", event.dp.id)
-    #print("^^^^^", event.enter) # true for switch connected, false for swtich disconnected
+    self.logger.info( "^^^^^ EventDP: dpid %d, enter %d", event.dp.id, event.enter) # true for switch connected, false for swtich disconnected
     #print("^^^^^", event.ports)
     ports = {}
     for item in event.ports:
@@ -187,7 +188,7 @@ class test1(app_manager.RyuApp):
 
   def UpdateConsulDatapathPort( self, dpid, reason, port):
     # TODO:  need to update local structures, and maybe use the local structure to update consul?
-    self.logger.info( '^^^^ ' + reason + ': %d %d %s %s %d %d', dpid, port['state'], port['mac'], port['name'], port['speed'], port['id'] )
+    self.logger.info( '^^^^ UCDP (' + reason + '): %d %d %s %s %d %d', dpid, port['state'], port['mac'], port['name'], port['speed'], port['id'] )
     self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']), reason )
     self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']) + '/name', port['name'] )
     self.consul.kv.put( 'mn_ryu/state/' + str(dpid) + '/ports/' + str(port['id']) + '/mac', port['mac'] )
@@ -196,6 +197,7 @@ class test1(app_manager.RyuApp):
     
 
   # not called as part of startup or shutdown
+#  @set_ev_cls(ofp_event.EventOFPStateChange, [MAIN_DISPATCHER, DEAD_DISPATCHER, CONFIG_DISPATCHER, HANDSHAKE_DISPATCHER ])
   @set_ev_cls(dpset.EventPortAdd)
   def HandleEventPortAdd(self, event):
     dp = event.dp # datapath
@@ -216,42 +218,42 @@ class test1(app_manager.RyuApp):
     self.UpdateConsulDatapathPort( dp.id, 'HandleEventPortModify', port )
 
   # makes use of --verbose and the topology library
-  @set_ev_cls(event.EventSwitchEnter)
-  def get_topology_data(self, ev):
-    switch_list = get_switch(self.topology_api_app, None)
-    switches=[switch.dp.id for switch in switch_list]
+#  @set_ev_cls(event.EventSwitchEnter)
+#  def get_topology_data(self, ev):
+#    switch_list = get_switch(self.topology_api_app, None)
+#    switches=[switch.dp.id for switch in switch_list]
     #self.net.add_nodes_from(switches)
 
-    print "**********List of switches"
-    for switch in switch_list:
+#    print "**********List of switches"
+#    for switch in switch_list:
       #self.ls(switch)
-      print switch
-      self.nodes[self.no_of_nodes] = switch
-      self.no_of_nodes += 1
+#      print switch
+#      self.nodes[self.no_of_nodes] = switch
+#      self.no_of_nodes += 1
 
-    links_list = get_link(self.topology_api_app, None)
-    print links_list
+#    links_list = get_link(self.topology_api_app, None)
+#    print links_list
 
-    links=[(link.src.dpid,link.dst.dpid,{'port':link.src.port_no}) for link in links_list]
-    print links
-
-    #self.net.add_edges_from(links)
-    links=[(link.dst.dpid,link.src.dpid,{'port':link.dst.port_no}) for link in links_list]
-    print links
+#    links=[(link.src.dpid,link.dst.dpid,{'port':link.src.port_no}) for link in links_list]
+#    print links
 
     #self.net.add_edges_from(links)
-    print "**********List of links"
+#    links=[(link.dst.dpid,link.src.dpid,{'port':link.dst.port_no}) for link in links_list]
+#    print links
+
+    #self.net.add_edges_from(links)
+#    print "**********List of links"
     #print self.net.edges()
-    for link in links_list:
-      print link.dst
-      print link.src
+#    for link in links_list:
+#      print link.dst
+#      print link.src
       #print "Novo link"
 	  #self.no_of_links += 1
 
 
-  @set_ev_cls(event.EventSwitchLeave, [MAIN_DISPATCHER, CONFIG_DISPATCHER, DEAD_DISPATCHER])
-  def handler_switch_leave(self, ev):
-    self.logger.info("**Not tracking Switch, switch left.")
+#  @set_ev_cls(event.EventSwitchLeave, [MAIN_DISPATCHER, CONFIG_DISPATCHER, DEAD_DISPATCHER])
+#  def handler_switch_leave(self, ev):
+#    self.logger.info("**Not tracking Switch, switch left.")
 
   @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
   def packet_in_handler(self, ev):
@@ -313,30 +315,31 @@ class test1(app_manager.RyuApp):
                       )
 
   # don't really need this as we monitor the original Add, Delete, Modify events
-#  @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
-#  def port_status_handler(self, ev):
-#    msg = ev.msg
-#    dp = msg.datapath
-#    ofp = dp.ofproto
-#
-#    if msg.reason == ofp.OFPPR_ADD:
-#        reason = 'ADD'
-#    elif msg.reason == ofp.OFPPR_DELETE:
-#        reason = 'DELETE'
-#    elif msg.reason == ofp.OFPPR_MODIFY:
-#        reason = 'MODIFY'
-#    else:
-#        reason = 'unknown'
-#
-#    self.logger.info('**OFPPortStatus received: reason=%s desc=%s',
-#                      reason, msg.desc)
+  #  isn't being called during port setup
+  @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
+  def port_status_handler(self, ev):
+    msg = ev.msg
+    dp = msg.datapath
+    ofp = dp.ofproto
+
+    if msg.reason == ofp.OFPPR_ADD:
+        reason = 'ADD'
+    elif msg.reason == ofp.OFPPR_DELETE:
+        reason = 'DELETE'
+    elif msg.reason == ofp.OFPPR_MODIFY:
+        reason = 'MODIFY'
+    else:
+        reason = 'unknown'
+
+    self.logger.info('!!!!! ++ OFPPortStatus received: reason=%s desc=%s',
+                      reason, msg.desc)
 
   @set_ev_cls(ofp_event.EventOFPPortStateChange, MAIN_DISPATCHER)
   def port_state_change(self,ev):
     dp = ev.datapath
     reason = ev.reason
     port = ev.port_no
-    self.logger.info('**OFPPortStateChange recieved: '
+    self.logger.info('!!!! -- OFPPortStateChange recieved: '
                      'datapath.id=%016x reason=%s port_no=%d',
                      dp.id, reason, port
                      )
