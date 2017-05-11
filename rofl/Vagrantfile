@@ -1,0 +1,70 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+krnlver=ENV['KRNLVER']
+ovsver=ENV['OVSVER']
+
+if krnlver.nil? or ovsver.nil? then
+  abort "need KRNLVER and OVSVER environment variables"
+end
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "stretch-" + krnlver
+  config.vm.box_url = "file://../boxes/stretch-" + krnlver + ".box"
+  config.vm.hostname = "rofl"
+
+  config.vm.synced_folder "../packages", "/vagrant_packages"
+  config.vm.provision "shell" do |s|
+    s.name = "provision rofl test ..."
+    s.inline = <<-SHELL
+      #sed -r -i 's_//[0-9.:]+/_//_g' /etc/apt/sources.list
+      apt-get update
+      apt-get -y upgrade
+      apt-get -y install net-tools less tcpdump
+      apt-get -y install python-six python2.7 openssl libatomic1 uuid-runtime less tcpdump libcap-ng-dev
+      dpkg -i /vagrant_packages/openvswitch-datapath-module-KRNLVER-custom_OVSVER-1_amd64.deb
+      dpkg -i /vagrant_packages/openvswitch-common_OVSVER-1_amd64.deb
+      dpkg -i /vagrant_packages/openvswitch-switch_OVSVER-1_amd64.deb
+      dpkg -i /vagrant_packages/python-openvswitch_OVSVER-1_all.deb
+      apt-get -y install python-pip unzip
+      apt-get -y install git
+      #apt-get -y install tshark
+      apt-get -y install autoconf automake libtool pkg-config libssl-dev
+      apt-get -y install linux-libc-dev libc6-dev libgoogle-glog-dev
+      apt-get -y install doxygen
+      git clone https://github.com/bisdn/rofl-common.git
+      cd rofl-common/
+      sed -i 's/TLSv1_2_method()/TLS_method()/' src/rofl/common/crofsock.cc
+      ./autogen.sh
+      cd build
+      LIBS=-lssl ../configure
+      make
+      make install
+    SHELL
+    s.inline = s.inline.gsub(/KRNLVER/,krnlver)
+    s.inline = s.inline.gsub(/OVSVER/,ovsver)
+  end
+
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    # vb.gui = true
+
+    # Customize the amount of memory on the VM:
+    vb.memory = "1024"
+    vb.name = "rofllab"
+    vb.cpus = 2
+
+    vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+#    vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
+#    vb.customize ["modifyvm", :id, "--nictype4", "virtio"]
+#    vb.customize ["modifyvm", :id, "--nictype5", "virtio"]
+    end
+
+  config.vm.network :private_network, virtualbox__intnet: "mgmt",  ip: "192.168.10.21/24"
+#  config.vm.network :private_network, virtualbox__intnet: "port1", ip: "192.168.30.30/24"
+#  config.vm.network :private_network, virtualbox__intnet: "port2", ip: "192.168.40.30/24"
+#  config.vm.network :private_network, virtualbox__intnet: "port3", ip: "192.168.50.30/24"
+  #config.vm.network :public_network, bridge: "enp2s0", ip: "192.168.11.10/24"
+
+end
