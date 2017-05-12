@@ -3,8 +3,8 @@ ip link set dev ovs-system up
 
 ovs-vsctl --may-exist add-br sw1
 ip link set dev sw1 up
-ovs-vsctl set bridge sw1 
-#ovs-vsctl set bridge sw1 protocols=OpenFlow13
+#ovs-vsctl set bridge sw1 
+ovs-vsctl set bridge sw1 protocols=OpenFlow13
 ovs-vsctl set-fail-mode sw1 secure
 ovs-vsctl set-controller sw1 tcp:127.0.0.1:6653
 
