@@ -1,0 +1,10 @@
+root@rofl:/home/vagrant# ovs-dpctl dump-flows
+recirc_id(0),in_port(2),eth(src=7e:7a:dd:f9:85:02,dst=ff:ff:ff:ff:ff:ff),eth_type(0x0806),arp(sip=10.0.0.1,tip=10.0.0.2,op=1/0xff), packets:3027, bytes:127134, used:0.484s, actions:userspace(pid=2737916150,slow_path(controller))
+
+root@rofl:/home/vagrant# ovs-ofctl dump-flows
+ovs-ofctl: 'dump-flows' command requires at least 1 arguments
+root@rofl:/home/vagrant# ovs-ofctl dump-flows sw1
+NXST_FLOW reply (xid=0x4):
+ cookie=0x0, duration=197.683s, table=0, n_packets=193, n_bytes=8106, idle_age=1, priority=0 actions=CONTROLLER:128
+root@rofl:/home/vagrant#
+
