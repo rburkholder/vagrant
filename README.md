@@ -32,6 +32,12 @@ ssh -p 2002 vagrant@127.0.0.1
 sudo bash additions.sh all 5.1.10
 ```
  * where 5.1.10 is the version of VirtualBox installed
+ * determine the version of the kernel installed:
+ ```
+ # uname -a
+Linux stretch 4.8.0-1-amd64 #1 SMP Debian 4.8.7-1 (201xx-xx-xx) x86_64 GNU/Linux
+ ```
+ * in this case we use 4.8.7
  * then shutdown the image:
 ```
 sudo shutdown -h now
